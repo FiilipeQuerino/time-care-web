@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Menu from "../components/Menu";
-import { FiArrowUpCircle, FiArrowDownCircle, FiDollarSign, FiFilter, FiBell } from "react-icons/fi";
+import { FiArrowUpCircle, FiArrowDownCircle, FiDollarSign, FiBell } from "react-icons/fi";
 import { IconContext } from "react-icons";
 import { useIsMobile } from "../hooks/useIsMobile";
 
