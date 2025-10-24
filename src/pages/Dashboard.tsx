@@ -1,85 +1,136 @@
 import Menu from "../components/Menu";
 import React from "react";
 import { useIsMobile } from "../hooks/useIsMobile";
+// Importando ícones populares (Fi: Feather Icons)
+import { FiCalendar, FiDollarSign, FiUsers } from 'react-icons/fi';
+import { IconContext } from 'react-icons';
 
-// Estilos do Dashboard
+// =================================================================
+// 1. ESTILOS ATUALIZADOS
+// =================================================================
+const ACCENT_COLOR = "#F08080"; // Sua cor principal (rosa claro)
+const DARK_TEXT = "#333";
+const SECONDARY_TEXT = "#777";
+const BORDER_COLOR = "#eee";
+
 const dashboardStyles = {
   container: {
     display: "flex",
-    minHeight: "100vh",
-    backgroundColor: "#FDFDFD", // Fundo do conteúdo
+    // Removendo minHeight: "100vh" aqui, pois já corrigimos no index.css
+    backgroundColor: "#FDFDFD",
   } as React.CSSProperties,
 
   content: (isMobile: boolean): React.CSSProperties => ({
     flex: 1,
-    // Ajuste do padding em mobile para desviar do botão hambúrguer
-    padding: isMobile ? "60px 15px 15px 15px" : "30px", 
+    padding: isMobile ? "60px 15px 15px 15px" : "30px",
+    minWidth: 0, // Garante que a div ocupe toda a largura
   }),
 
   title: {
-    color: "#333",
+    color: DARK_TEXT,
     marginBottom: "20px",
     fontSize: "28px",
     fontWeight: "700",
   } as React.CSSProperties,
 
-  // Estilos para o Grid de Cards
   cardsGrid: (isMobile: boolean): React.CSSProperties => ({
     display: "grid",
-    // 3 colunas no desktop, 1 coluna no mobile
-    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", 
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
     gap: "20px",
     marginBottom: "40px",
   }),
-  
-  // Estilo para a seção de Visão Geral (Agenda e Gráfico Simulado)
+
   overviewGrid: (isMobile: boolean): React.CSSProperties => ({
+    // Agora só precisamos de 1 coluna, já que removemos o Bloco 2.
     display: "grid",
-    // 2 colunas no desktop (Agenda e Relatório Rápido), 1 coluna no mobile
-    gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", 
+    gridTemplateColumns: "1fr",
     gap: "20px",
   }),
+
+  // Novo estilo para o bloco de Agenda
+  agendaBlock: {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)'
+  } as React.CSSProperties,
 };
 
-// Componente Card de Exemplo (Mantido e Reutilizado)
-const cardStyles = {
-    card: {
-        backgroundColor: "white",
-        padding: "20px",
-        borderRadius: "10px",
-        boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)",
-        borderLeft: "5px solid #F08080", // Linha de destaque
-    } as React.CSSProperties,
-    cardTitle: {
-        color: "#777",
-        fontSize: "14px",
-        marginBottom: "10px",
-    } as React.CSSProperties,
-    cardValue: {
-        fontSize: "28px",
-        fontWeight: "bold",
-        color: "#333",
-    } as React.CSSProperties,
+// =================================================================
+// 2. COMPONENTE CARD MODERNIZADO (KPI)
+// =================================================================
+interface ModernCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  color: string;
 }
 
-const Card = ({ title, value }: { title: string, value: string }) => (
-    <div style={cardStyles.card}>
-        <div style={cardStyles.cardTitle}>{title}</div>
-        <div style={cardStyles.cardValue}>{value}</div>
+const ModernCard: React.FC<ModernCardProps> = ({ title, value, icon, color }) => (
+  <div style={{
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)",
+    borderLeft: `5px solid ${color}`, // Destaque lateral pela cor
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  }}>
+    {/* Bloco de Texto */}
+    <div>
+      <div style={{ color: SECONDARY_TEXT, fontSize: "14px", marginBottom: "5px" }}>
+        {title}
+      </div>
+      <div style={{ fontSize: "26px", fontWeight: "bold", color: DARK_TEXT }}>
+        {value}
+      </div>
     </div>
+
+    {/* Bloco de Ícone */}
+    <div style={{
+      padding: '12px',
+      borderRadius: '50%',
+      backgroundColor: `${color}1A`, // Cor clara para o fundo do ícone
+      color: color
+    }}>
+      {/* O IconContext garante que o ícone tenha o tamanho correto */}
+      <IconContext.Provider value={{ size: "24px" }}>
+        {icon}
+      </IconContext.Provider>
+    </div>
+  </div>
 );
 
-// --- Componente principal Dashboard ---
+
+// =================================================================
+// 3. COMPONENTE PRINCIPAL DASHBOARD
+// =================================================================
 export default function Dashboard() {
   const isMobile = useIsMobile();
-  
+
   // Dados de simulação
-  const summaryCards = [
-    { title: "Agendamentos Hoje", value: "12" },
-    { title: "Receita (Mês)", value: "R$ 15.800" },
-    { title: "Próxima Semana", value: "35 Clientes" },
+  const summaryCards: ModernCardProps[] = [
+    {
+      title: "Agendamentos Hoje",
+      value: "12",
+      icon: <FiCalendar />,
+      color: ACCENT_COLOR // Rosa
+    },
+    {
+      title: "Receita (Mês)",
+      value: "R$ 15.800",
+      icon: <FiDollarSign />,
+      color: "#28a745" // Verde
+    },
+    {
+      title: "Próxima Semana",
+      value: "35 Clientes",
+      icon: <FiUsers />,
+      color: "#007bff" // Azul
+    },
   ];
-  
+
   const nextAppointments = [
     { time: "09:00", client: "Ana Beatriz", service: "Limpeza de Pele" },
     { time: "10:30", client: "João Silva", service: "Massagem Relaxante" },
@@ -89,51 +140,50 @@ export default function Dashboard() {
   return (
     <div style={{ ...dashboardStyles.container, flexDirection: isMobile ? "column" : "row" }}>
       <Menu />
-      
+
       {/* Container de Conteúdo */}
       <div style={dashboardStyles.content(isMobile)}>
         <h1 style={dashboardStyles.title}>Resumo Geral</h1>
-        
-        {/* 1. Grid de Cards de Sumário */}
+
+        {/* 1. Grid de Cards de Sumário (KPIs Modernos) */}
         <div style={dashboardStyles.cardsGrid(isMobile)}>
           {summaryCards.map((card, index) => (
-            <Card key={index} title={card.title} value={card.value} />
+            <ModernCard
+              key={index}
+              title={card.title}
+              value={card.value}
+              icon={card.icon}
+              color={card.color}
+            />
           ))}
         </div>
-        
-        {/* 2. Visão Geral (Agenda e Relatórios Rápidos) */}
-        <div style={dashboardStyles.overviewGrid(isMobile)}>
-            {/* Bloco 1: Próximos Agendamentos */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)' }}>
-                <h2 style={{ color: '#333', fontSize: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>
-                    Próximos na Agenda
-                </h2>
-                {nextAppointments.map((app, index) => (
-                    <div key={index} style={{ padding: '10px 0', borderBottom: index < nextAppointments.length - 1 ? '1px dotted #eee' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <span style={{ fontWeight: 'bold', color: '#F08080' }}>{app.time}</span> - {app.client}
-                        </div>
-                        <span style={{ fontSize: '12px', color: '#777' }}>{app.service}</span>
-                    </div>
-                ))}
-            </div>
 
-            {/* Bloco 2: Gráfico Rápido/KPI */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)' }}>
-                <h2 style={{ color: '#333', fontSize: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>
-                    Taxa de Ocupação
-                </h2>
-                <div style={{ textAlign: 'center', padding: '20px', border: '3px dashed #FCE7EB', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#F08080' }}>
-                        75%
-                    </div>
-                    <p style={{ color: '#555', marginTop: '10px' }}>
-                        Média Semanal
-                    </p>
+        {/* 2. Visão Geral (Apenas Agenda) */}
+        <div style={dashboardStyles.overviewGrid(isMobile)}>
+          {/* Bloco 1: Próximos Agendamentos */}
+          <div style={dashboardStyles.agendaBlock}>
+            <h2 style={{ color: DARK_TEXT, fontSize: '20px', borderBottom: `1px solid ${BORDER_COLOR}`, paddingBottom: '10px', marginBottom: '15px' }}>
+              Próximos na Agenda
+            </h2>
+            {nextAppointments.map((app, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: '10px 0',
+                  borderBottom: index < nextAppointments.length - 1 ? `1px dotted ${BORDER_COLOR}` : 'none',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div>
+                  <span style={{ fontWeight: 'bold', color: ACCENT_COLOR }}>{app.time}</span> - {app.client}
                 </div>
-            </div>
+                <span style={{ fontSize: '12px', color: SECONDARY_TEXT }}>{app.service}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        
       </div>
     </div>
   );

@@ -88,8 +88,6 @@ export default function Menu() {
     navStyle = {
       ...navStyle,
       width: MENU_WIDTH, 
-      height: "100%", 
-      minHeight: "100vh", // Garante que ocupe a altura da tela
       position: "fixed",
       top: 0,
       left: 0,
@@ -102,7 +100,6 @@ export default function Menu() {
     navStyle = {
         ...navStyle,
         width: MENU_WIDTH,
-        minHeight: "100vh",
         position: "sticky", // Mantém o menu na tela ao rolar
         top: 0,
     };
