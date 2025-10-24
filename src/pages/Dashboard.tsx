@@ -49,7 +49,7 @@ const dashboardStyles = {
 
   overviewGrid: (isMobile: boolean): React.CSSProperties => ({
     display: "grid",
-    gridTemplateColumns: "1fr",
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
     gap: "20px",
   }),
 
