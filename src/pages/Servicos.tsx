@@ -1,7 +1,7 @@
 import Menu from "../components/Menu";
 import ListaPadrao from "../components/ListaPadrao";
 import { FormularioServico } from "../components/FormularioServico"; // Importe o formulário
-import React, { useState } from "react"; // Importe useState
+import { useState } from "react"; // Importe useState
 import toast from "react-hot-toast";
 import { useIsMobile } from "../hooks/useIsMobile";
 
