@@ -1,30 +1,50 @@
 import { Link, useLocation } from "react-router-dom";
 import React, { useState } from "react";
-// Importe o novo hook que criamos
-import { useIsMobile } from "../hooks/useIsMobile"; 
+import { useIsMobile } from "../hooks/useIsMobile";
+// Importando IconContext e os ícones necessários do Feather Icons (Fi)
+import { IconContext } from 'react-icons';
+import {
+  FiGrid,
+  FiCalendar,
+  FiUsers,
+  FiSettings,
+  FiDollarSign,
+  FiTool, // Usado para Serviços
+  FiBarChart2 // Usado para Relatórios
+} from 'react-icons/fi';
+
+
+// --- Definição dos Dados de Navegação (Links e Ícones) ---
+const navigation = [
+  { name: "Dashboard", path: "/dashboard", icon: FiGrid },
+  { name: "Agenda", path: "/agenda", icon: FiCalendar },
+  { name: "Clientes", path: "/clientes", icon: FiUsers },
+  { name: "Serviços", path: "/servicos", icon: FiTool },
+  { name: "Relatórios", path: "/relatorios", icon: FiBarChart2 },
+  { name: "Finanças", path: "/financas", icon: FiDollarSign },
+  { name: "Configurações", path: "/configuracoes", icon: FiSettings },
+];
+
+const ACCENT_COLOR = "#F08080";
 
 // --- Estilos de Menu ---
-// ... (Seus estilos menuStyles permanecem os mesmos) ...
 const menuStyles = {
-  // Container principal do Menu
   navBase: {
     padding: "1.5rem 1rem",
     backgroundColor: "white",
-    // Removendo minHeight: "100vh" daqui para controlar melhor na lógica abaixo
     boxShadow: "2px 0 5px rgba(0, 0, 0, 0.05)",
     flexShrink: 0,
     position: "relative",
     transition: "transform 0.3s ease-in-out, width 0.3s ease-in-out",
   } as React.CSSProperties,
 
-  // Estilo para o Toggle (Botão Hambúrguer) - VISÍVEL APENAS EM MOBILE
   menuToggle: {
-    display: "none", 
+    display: "none",
     position: "fixed",
     top: "15px",
     left: "15px",
     zIndex: 1000,
-    backgroundColor: "#F08080",
+    backgroundColor: ACCENT_COLOR,
     color: "white",
     border: "none",
     padding: "10px 15px",
@@ -34,19 +54,22 @@ const menuStyles = {
     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
     transition: "left 0.3s ease-in-out, background-color 0.3s",
   } as React.CSSProperties,
-  
+
   logo: {
     fontSize: "20px",
     fontWeight: "bold",
-    color: "#F08080",
+    color: ACCENT_COLOR,
     marginBottom: "2rem",
     textAlign: "center",
   } as React.CSSProperties,
 
   ul: { listStyle: "none", padding: 0, margin: 0, } as React.CSSProperties,
   li: { marginBottom: "0.5rem", } as React.CSSProperties,
+
+  // NOVO: Estilo para o link que agora é um flexbox
   linkBase: {
-    display: "block",
+    display: "flex", // Adiciona Flexbox
+    alignItems: "center", // Centraliza o ícone e o texto verticalmente
     padding: "12px 15px",
     textDecoration: "none",
     color: "#555",
@@ -55,15 +78,21 @@ const menuStyles = {
     fontSize: "16px",
     fontWeight: "500",
   } as React.CSSProperties,
+  // NOVO: Estilo para o contêiner do ícone
+  iconContainer: {
+    marginRight: '12px',
+    display: 'flex', // Garante que o ícone fique centralizado no seu próprio contêiner
+    alignItems: 'center',
+  } as React.CSSProperties
 };
 
-// ... (getLinkStyle permanece o mesmo) ...
+// --- Função de Estilo de Link Atualizada ---
 const getLinkStyle = (path: string, currentPath: string): React.CSSProperties => {
   const isActive = currentPath === path;
   return {
     ...menuStyles.linkBase,
     backgroundColor: isActive ? "#FCE7EB" : "transparent",
-    color: isActive ? "#F08080" : "#555",
+    color: isActive ? ACCENT_COLOR : "#555",
     fontWeight: isActive ? "600" : "500",
   };
 };
@@ -74,60 +103,54 @@ const MENU_WIDTH = "220px";
 export default function Menu() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  
-  // *** Usa o Hook Dinâmico Aqui ***
   const isMobile = useIsMobile();
-  
+
   const currentPath = location.pathname;
 
-  // Lógica para o estilo do NAV
+  // Lógica para o estilo do NAV (MANTIDA IGUAL)
   let navStyle: React.CSSProperties = { ...menuStyles.navBase };
-  
+
   if (isMobile) {
     // Mobile (Off-Canvas)
     navStyle = {
       ...navStyle,
-      width: MENU_WIDTH, 
+      width: MENU_WIDTH,
       position: "fixed",
       top: 0,
       left: 0,
       zIndex: 999,
-      transform: isOpen ? "translateX(0)" : "translateX(-100%)", 
+      transform: isOpen ? "translateX(0)" : "translateX(-100%)",
       boxShadow: isOpen ? "2px 0 5px rgba(0, 0, 0, 0.3)" : "none",
     };
   } else {
     // Desktop (Sidebar Fixo)
     navStyle = {
-        ...navStyle,
-        width: MENU_WIDTH,
-        position: "sticky", // Mantém o menu na tela ao rolar
-        top: 0,
+      ...navStyle,
+      width: MENU_WIDTH,
+      position: "sticky",
+      top: 0,
     };
   }
 
-  // Fecha o menu após clicar em um link (em mobile)
   const handleLinkClick = () => {
     if (isMobile) {
       setIsOpen(false);
     }
   };
-  
-  // Se estiver no desktop, garante que não há transformação 'translateX'
-  // e o menu está sempre 'aberto' (pois não usamos o toggle)
+
   if (!isMobile) {
-      navStyle.transform = 'none';
+    navStyle.transform = 'none';
   }
 
   return (
     <>
-      {/* 1. Botão Hambúrguer (Visível apenas em mobile) */}
+      {/* 1. Botão Hambúrguer e 2. Overlay (MANTIDOS IGUAIS) */}
       {isMobile && (
-        <button 
-          style={{ 
-            ...menuStyles.menuToggle, 
+        <button
+          style={{
+            ...menuStyles.menuToggle,
             display: "block",
-            // A posição do X em relação ao menu aberto (Largura do menu + 15px)
-            left: isOpen ? `calc(${MENU_WIDTH} + 15px)` : "15px", 
+            left: isOpen ? `calc(${MENU_WIDTH} + 15px)` : "15px",
           }}
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -135,10 +158,9 @@ export default function Menu() {
         </button>
       )}
 
-      {/* 2. Overlay escuro quando o menu está aberto em mobile */}
       {isMobile && isOpen && (
-        <div 
-          onClick={() => setIsOpen(false)} 
+        <div
+          onClick={() => setIsOpen(false)}
           style={{
             position: "fixed",
             top: 0,
@@ -152,47 +174,31 @@ export default function Menu() {
       )}
 
       {/* 3. O Próprio Menu */}
-      {/* No desktop, o menu é sempre renderizado e o conteúdo se ajusta ao lado.
-          No mobile, ele só é 'visível' através do transform: translateX. */}
       <nav style={navStyle}>
         <h3 style={menuStyles.logo}>TimeCare</h3>
         <ul style={menuStyles.ul}>
-          <li style={menuStyles.li}>
-            <Link to="/dashboard" style={getLinkStyle("/dashboard", currentPath)} onClick={handleLinkClick}>
-              Dashboard
-            </Link>
-          </li>
-          {/* ... Repita para os demais links ... */}
-          <li style={menuStyles.li}>
-            <Link to="/agenda" style={getLinkStyle("/agenda", currentPath)} onClick={handleLinkClick}>
-              Agenda
-            </Link>
-          </li>
-          <li style={menuStyles.li}>
-            <Link to="/clientes" style={getLinkStyle("/clientes", currentPath)} onClick={handleLinkClick}>
-              Clientes
-            </Link>
-          </li>
-          <li style={menuStyles.li}>
-            <Link to="/servicos" style={getLinkStyle("/servicos", currentPath)} onClick={handleLinkClick}>
-              Serviços
-            </Link>
-          </li>
-          <li style={menuStyles.li}>
-            <Link to="/relatorios" style={getLinkStyle("/relatorios", currentPath)} onClick={handleLinkClick}>
-              Relatórios
-            </Link>
-          </li>
-          <li style={menuStyles.li}>
-            <Link to="/financas" style={getLinkStyle("/financas", currentPath)} onClick={handleLinkClick}>
-              Finanças
-            </Link>
-          </li>
-          <li style={menuStyles.li}>
-            <Link to="/configuracoes" style={getLinkStyle("/configuracoes", currentPath)} onClick={handleLinkClick}>
-              Configurações
-            </Link>
-          </li>
+          {/* NOVO: Mapeamento dos Links */}
+          <IconContext.Provider value={{ size: "18px" }}>
+            {navigation.map((item) => {
+              const ItemIcon = item.icon; // Componente do ícone
+              const isActive = item.path === currentPath;
+              const linkStyle = getLinkStyle(item.path, currentPath);
+
+              // Cor do ícone
+              const iconColor = isActive ? ACCENT_COLOR : '#999';
+
+              return (
+                <li key={item.path} style={menuStyles.li}>
+                  <Link to={item.path} style={linkStyle} onClick={handleLinkClick}>
+                    <div style={{ ...menuStyles.iconContainer, color: iconColor }}>
+                      <ItemIcon />
+                    </div>
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </IconContext.Provider>
         </ul>
       </nav>
     </>
