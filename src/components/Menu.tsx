@@ -184,6 +184,11 @@ export default function Menu() {
             </Link>
           </li>
           <li style={menuStyles.li}>
+            <Link to="/financas" style={getLinkStyle("/financas", currentPath)} onClick={handleLinkClick}>
+              Finanças
+            </Link>
+          </li>
+          <li style={menuStyles.li}>
             <Link to="/configuracoes" style={getLinkStyle("/configuracoes", currentPath)} onClick={handleLinkClick}>
               Configurações
             </Link>

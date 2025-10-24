@@ -7,6 +7,7 @@ import Agenda from "./pages/Agenda";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import { Toaster } from "react-hot-toast";
+import Financas from "./pages/Financas";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/servicos" element={<Servicos />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/agenda" element={<Agenda />} />
+        <Route path="/financas" element={<Financas />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
       </Routes>
