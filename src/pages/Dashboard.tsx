@@ -7,15 +7,15 @@ const ACCENT_COLOR = "#F08080";
 const DARK_TEXT = "#333";
 const SECONDARY_TEXT = "#777";
 const BORDER_COLOR = "#eee";
-const ALERT_COLOR = "#ffc107"; // Amarelo para alertas
-const DANGER_COLOR = "#dc3545"; // Vermelho para ênfase (ex: não confirmados/pendentes)
+const ALERT_COLOR = "#ffc107";
+const DANGER_COLOR = "#dc3545";
 
 const dataClientesPorDia = {
   labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
   datasets: [
     {
       label: "Clientes Agendados",
-      data: [3, 0, 10, 5, 8, 4], // Seus dados: seg 3, ter 0, qua 10, etc.
+      data: [3, 0, 10, 5, 8, 4],
       backgroundColor: ACCENT_COLOR,
       borderRadius: 4,
     },
@@ -32,13 +32,10 @@ const alertas = [
   { id: 1, mensagem: "3 agendamentos para hoje não confirmados.", tipo: "Atenção", cor: DANGER_COLOR },
   { id: 2, mensagem: "5 clientes de ontem que não pagaram/finalizaram.", tipo: "Pendente", cor: ALERT_COLOR },
   { id: 3, mensagem: "A meta de receita do mês está 15% abaixo do esperado.", tipo: "Atenção", cor: ALERT_COLOR },
-
-  // ** NOVOS ALERTAS RELEVANTES **
   { id: 4, mensagem: "2 clientes VIPs não agendam há 30 dias.", tipo: "Ação Imediata", cor: DANGER_COLOR },
   { id: 5, mensagem: "Estoque de produto X está baixo (faltam 5 dias).", tipo: "Estoque", cor: ALERT_COLOR },
 ];
 
-// --- ESTILOS ADICIONAIS PARA O NOVO LAYOUT ---
 const pageStyles = {
   container: (isMobile: boolean): React.CSSProperties => ({
     display: "flex",
@@ -213,31 +210,49 @@ const AlertsList: React.FC = () => (
   </div>
 );
 
-const FinancialSummary: React.FC = () => (
+const WeeklyClientSummary: React.FC = () => {
+  const days = dataClientesPorDia.labels;
+  const counts = dataClientesPorDia.datasets[0].data;
+
+  return (
     <div style={{ ...pageStyles.box, minHeight: '300px' }}>
-        <h3 style={pageStyles.boxTitle}><FiDollarSign style={{ verticalAlign: 'middle', marginRight: '5px' }} /> Resumo Financeiro</h3>
-        
-        <div style={{ display: 'grid', gap: '15px' }}>
-            {/* Métrica 1: Receita Hoje */}
-            <div style={{ paddingBottom: '10px', borderBottom: `1px dashed ${BORDER_COLOR}` }}>
-                <div style={pageStyles.cardSubtitle}>Receita Estimada (Hoje)</div>
-                <div style={{...pageStyles.cardText, color: '#28a745'}}>R$ 870,00</div>
-            </div>
-            
-            {/* Métrica 2: Tickets Médio (Mês) */}
-            <div style={{ paddingBottom: '10px', borderBottom: `1px dashed ${BORDER_COLOR}` }}>
-                <div style={pageStyles.cardSubtitle}>Ticket Médio (Mês)</div>
-                <div style={{...pageStyles.cardText, fontSize: '18px'}}>R$ 135,50</div>
+      <h3 style={pageStyles.boxTitle}>Total de Clientes por Dia</h3>
+
+      <div style={{ display: 'grid', gap: '10px' }}>
+        {days.map((day, index) => (
+          <div
+            key={day}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '10px 0',
+              borderBottom: index < days.length - 1 ? `1px dashed ${BORDER_COLOR}` : 'none'
+            }}
+          >
+            <div style={{ fontWeight: '600', color: DARK_TEXT }}>
+              {day}
             </div>
 
-            {/* Métrica 3: Clientes Novos (Mês) */}
-            <div>
-                <div style={pageStyles.cardSubtitle}>Clientes Novos (Mês)</div>
-                <div style={{...pageStyles.cardText, color: '#007bff'}}>42</div>
+            {/* Contagem de Clientes */}
+            <div
+              style={{
+                fontWeight: '700',
+                fontSize: '18px',
+                color: counts[index] > 0 ? ACCENT_COLOR : SECONDARY_TEXT,
+                backgroundColor: counts[index] >= 8 ? `${ACCENT_COLOR}20` : 'transparent',
+                padding: '4px 10px',
+                borderRadius: '4px',
+              }}
+            >
+              {counts[index]} Clientes
             </div>
-        </div>
+          </div>
+        ))}
+      </div>
     </div>
-);
+  );
+};
 
 export default function Dashboard() {
   const isMobile = useIsMobile();
@@ -255,7 +270,6 @@ export default function Dashboard() {
       <div style={pageStyles.content(isMobile)}>
         <h1 style={pageStyles.title}>Dashboard</h1>
 
-        {/* 1. GRID DE CARDS DE RESUMO (TOPO) */}
         <div style={pageStyles.cardsGrid(isMobile)}>
           {summaryCards.map((card, index) => (
             <StatCard key={index} {...card} />
@@ -263,7 +277,7 @@ export default function Dashboard() {
         </div>
 
         <div style={pageStyles.bottomGrid(isMobile)}>
-          <FinancialSummary />
+          <WeeklyClientSummary />
 
           <NextAppointmentsList />
 
