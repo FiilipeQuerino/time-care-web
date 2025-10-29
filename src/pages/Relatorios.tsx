@@ -94,21 +94,11 @@ const ReportCategoryCard: React.FC<ReportCategoryProps> = ({ category }) => {
     boxShadow: "0 6px 15px rgba(0, 0, 0, 0.08)",
     border: "1px solid #eee",
     transition: "transform 0.3s, box-shadow 0.3s",
-    cursor: "pointer",
   };
 
   return (
-    <div
-      style={cardStyle}
-      onMouseOver={(e) => {
-        e.currentTarget.style.boxShadow = "0 10px 20px rgba(240, 128, 128, 0.3)";
-        e.currentTarget.style.transform = "translateY(-5px)";
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.boxShadow = "0 6px 15px rgba(0, 0, 0, 0.08)";
-        e.currentTarget.style.transform = "translateY(0)";
-      }}
-    >
+    <div style={cardStyle}>
+
       <div style={{ fontSize: "40px", marginBottom: "10px", color: "#F08080" }}>{category.icon}</div>
       <h3 style={{ color: "#F08080", marginBottom: "5px", fontSize: "18px" }}>{category.title}</h3>
       <p style={{ color: "#777", fontSize: "14px", marginBottom: "20px" }}>{category.description}</p>
@@ -129,9 +119,21 @@ const ReportCategoryCard: React.FC<ReportCategoryProps> = ({ category }) => {
             color: "#333",
             textAlign: isMobile ? "center" : "left",
             cursor: "pointer",
-            transition: "all 0.2s",
+            transition: "all 0.2s ease",
             fontSize: "14px",
             fontWeight: 500,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#F08080";
+            e.currentTarget.style.color = "#FFF";
+            e.currentTarget.style.boxShadow = "0 3px 10px rgba(240, 128, 128, 0.3)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#FFF";
+            e.currentTarget.style.color = "#333";
+            e.currentTarget.style.boxShadow = "none";
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           {report.name}

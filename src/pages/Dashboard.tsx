@@ -13,9 +13,6 @@ import {
   CartesianGrid,
 } from "recharts";
 
-// =================================================================
-// ESTILOS
-// =================================================================
 const ACCENT_COLOR = "#F08080";
 const DARK_TEXT = "#333";
 const SECONDARY_TEXT = "#777";
@@ -61,9 +58,6 @@ const dashboardStyles = {
   } as React.CSSProperties,
 };
 
-// =================================================================
-// CARD RESUMO
-// =================================================================
 interface ModernCardProps {
   title: string;
   value: string;
@@ -104,9 +98,6 @@ const ModernCard: React.FC<ModernCardProps> = ({ title, value, icon, color }) =>
   </div>
 );
 
-// =================================================================
-// DASHBOARD PRINCIPAL
-// =================================================================
 export default function Dashboard() {
   const isMobile = useIsMobile();
 

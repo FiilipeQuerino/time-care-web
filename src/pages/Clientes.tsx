@@ -14,7 +14,6 @@ const initialClientesData = [
   { id: 104, primaryText: "Ricardo Mendes", secondaryText: "Cadastro: 15/Jan/2023 | Tel: (47) 99999-0000", isActive: false },
 ];
 
-// --- Estilos Comuns (Permanecem os mesmos) ---
 const pageStyles = {
   container: (isMobile: boolean): React.CSSProperties => ({
     display: "flex",
