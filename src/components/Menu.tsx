@@ -114,13 +114,14 @@ export default function Menu() {
     // Mobile (Off-Canvas)
     navStyle = {
       ...navStyle,
-      width: MENU_WIDTH,
+      height: "100vh",
       position: "fixed",
       top: 0,
       left: 0,
       zIndex: 999,
       transform: isOpen ? "translateX(0)" : "translateX(-100%)",
       boxShadow: isOpen ? "2px 0 5px rgba(0, 0, 0, 0.3)" : "none",
+      overflowY: "auto", 
     };
   } else {
     // Desktop (Sidebar Fixo)
