@@ -92,35 +92,50 @@ const Sidebar = ({
 );
 
 // --- Dropdown para Mobile ---
-const DropdownNav = ({
+const MobileTabs = ({
   activeTab,
   setActiveTab,
 }: {
   activeTab: string;
   setActiveTab: (id: string) => void;
 }) => (
-  <div style={{ marginBottom: "20px" }}>
-    <select
-      value={activeTab}
-      onChange={(e) => setActiveTab(e.target.value)}
-      style={{
-        width: "100%",
-        padding: "10px 15px",
-        fontSize: "16px",
-        borderRadius: "5px",
-        border: "1px solid #ddd",
-        backgroundColor: "white",
-        color: "#333",
-      }}
-    >
-      {configTabs.map((tab) => (
-        <option key={tab.id} value={tab.id}>
+  <div
+    style={{
+      display: "flex",
+      overflowX: "auto",
+      gap: "10px",
+      marginBottom: "20px",
+      paddingBottom: "5px",
+    }}
+  >
+    {configTabs.map((tab) => {
+      const isActive = tab.id === activeTab;
+      return (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          style={{
+            flexShrink: 0,
+            padding: "10px 16px",
+            borderRadius: "20px",
+            border: "none",
+            cursor: "pointer",
+            backgroundColor: isActive ? "#F08080" : "#F5F5F5",
+            color: isActive ? "white" : "#555",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          {tab.icon}
           {tab.name}
-        </option>
-      ))}
-    </select>
+        </button>
+      );
+    })}
   </div>
 );
+
 
 // --- Conteúdo da Aba ---
 const ConfigContent = ({ tabId }: { tabId: string }) => {
@@ -170,7 +185,11 @@ export default function Configuracoes() {
       <div style={styles.contentWrapper(isMobile)}>
         <h1 style={styles.title}>Configurações do Sistema</h1>
         <div style={styles.configLayout(isMobile)}>
-          {isMobile ? <DropdownNav activeTab={activeTab} setActiveTab={setActiveTab} /> : <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />}
+            {isMobile ? (
+              <MobileTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+            ) : (
+              <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            )}
           <div style={styles.mainContent}>
             <ConfigContent tabId={activeTab} />
           </div>
