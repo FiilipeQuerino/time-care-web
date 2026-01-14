@@ -14,10 +14,32 @@ import {
 } from 'lucide-react';
 import { Appointment, Service } from '../../types';
 
+
 // Pixels per minute for visual representation
 const PX_PER_MIN = 1.5;
 
 const Agenda: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString('pt-BR', {
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  const getCarouselDays = () => {
+    const days: Date[] = [];
+
+    for (let i = -3; i <= 3; i++) {
+      const day = new Date(currentDate);
+      day.setDate(currentDate.getDate() + i);
+      days.push(day);
+    }
+
+    return days;
+  };
+
   const [appointments, setAppointments] = useState<Appointment[]>([
     { id: 1, time: '10:00', endTime: '11:00', client: 'Ana Beatriz', service: 'Limpeza de Pele', duration: 60, type: 'facial', status: 'confirmed' },
     { id: 2, time: '14:00', endTime: '14:30', client: 'Ricardo Alves', service: 'Drenagem', duration: 30, type: 'corporal', status: 'pending' },
@@ -121,11 +143,36 @@ const Agenda: React.FC = () => {
           <p className="text-slate-500 mt-1">Horário de operação estendido: 08:00 às 23:00</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-white border border-rose-100 rounded-2xl p-1 shadow-sm">
-            <button className="p-2 hover:bg-rose-50 rounded-xl transition-all text-slate-400 hover:text-pink-500"><ChevronLeft size={20}/></button>
-            <span className="px-4 font-bold text-slate-700 text-sm">Terça, 18 Out 2023</span>
-            <button className="p-2 hover:bg-rose-50 rounded-xl transition-all text-slate-400 hover:text-pink-500"><ChevronRight size={20}/></button>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-lg font-black text-slate-700 capitalize">
+              {formatMonthYear(currentDate)}
+            </h3>
           </div>
+
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {getCarouselDays().map((day, index) => {
+              const isSelected =
+                day.toDateString() === currentDate.toDateString();
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => setCurrentDate(day)}
+                  className={`min-w-[70px] rounded-2xl p-3 text-center transition-all ${
+                    isSelected
+                      ? 'bg-pink-500 text-white shadow-lg scale-105'
+                      : 'bg-white border border-rose-100 text-slate-600 hover:bg-rose-50'
+                  }`}
+                >
+                  <p className="text-[10px] font-black uppercase tracking-widest">
+                    {day.toLocaleDateString('pt-BR', { weekday: 'short' })}
+                  </p>
+                  <p className="text-lg font-black">{day.getDate()}</p>
+                </button>
+              );
+            })}
+          </div>
+
           <button onClick={() => handleOpenModal('08:00')} className="bg-pink-500 text-white px-6 py-2.5 rounded-2xl shadow-lg shadow-pink-100 flex items-center gap-2 font-bold text-sm hover:bg-pink-600 transition-all">
             <Plus size={18} /> Novo Agendamento
           </button>
