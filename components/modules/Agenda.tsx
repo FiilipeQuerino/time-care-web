@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
 import { 
-  ChevronLeft, 
-  ChevronRight, 
   Clock, 
   Plus, 
   Lock, 
@@ -10,7 +8,6 @@ import {
   User, 
   Briefcase, 
   MoreHorizontal,
-  AlertTriangle
 } from 'lucide-react';
 import { Appointment, Service } from '../../types';
 

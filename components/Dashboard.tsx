@@ -24,6 +24,7 @@ import {
   Area 
 } from 'recharts';
 import { Appointment, Alert, WeeklyData } from '../types';
+import { ViewType } from '../App';
 
 const weeklyData: WeeklyData[] = [
   { day: 'Seg', count: 3, revenue: 1200 },
@@ -47,6 +48,10 @@ const alerts: Alert[] = [
   { id: 3, message: 'Meta mensal está 15% abaixo do esperado.', type: 'Gestão', severity: 'low' },
 ];
 
+interface DashboardProps {
+  setView: (view: ViewType) => void;
+}
+
 const StatCard = ({ title, value, icon, color, trend }: { title: string, value: string, icon: React.ReactElement, color: string, trend?: string }) => (
   <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-rose-50 hover:shadow-[0_8px_30px_rgb(244,114,182,0.1)] transition-all group">
     <div className="flex justify-between items-start mb-4">
@@ -64,7 +69,7 @@ const StatCard = ({ title, value, icon, color, trend }: { title: string, value: 
   </div>
 );
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
   const handleWhatsApp = (client: string) => {
     const text = encodeURIComponent(`Olá ${client.split(' ')[0]}! Tudo bem? Passando para confirmar seu agendamento na Time Care hoje. ✨`);
     window.open(`https://wa.me/5511999999999?text=${text}`, '_blank');
@@ -78,7 +83,7 @@ const Dashboard: React.FC = () => {
           <p className="text-slate-500 mt-1 font-medium">Sua clínica está radiante hoje.</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-pink-500 text-white px-6 py-4 md:py-2.5 rounded-2xl shadow-lg shadow-pink-100 hover:bg-pink-600 transition-all font-bold">
+          <button onClick={() => setView('agenda')} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-pink-500 text-white px-6 py-4 md:py-2.5 rounded-2xl shadow-lg shadow-pink-100 hover:bg-pink-600 transition-all font-bold">
             <Plus className="w-5 h-5" /> Novo Agendamento
           </button>
         </div>
