@@ -469,14 +469,15 @@ export const DashboardPage = () => {
             <h3 className="text-lg font-bold text-slate-800">Clientes</h3>
             <span className="text-sm text-slate-500">Total: {clientsTotal ?? clients.length}</span>
           </div>
-          <Button
-            size="sm"
-            icon={Smartphone}
-            className="border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100"
-            onClick={() => void handleExportContacts()}
-          >
-            Exportar para celular (.vcf)
-          </Button>
+            <Button
+              size="sm"
+              icon={Smartphone}
+              className="w-full sm:w-auto border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 text-sm"
+              onClick={() => void handleExportContacts()}
+            >
+              <span className="sm:hidden">Exportar agenda</span>
+              <span className="hidden sm:inline">Exportar para celular (.vcf)</span>
+            </Button>
         </div>
 
         <p className="text-xs text-sky-700 bg-sky-50 border border-sky-100 rounded-lg px-3 py-2 mb-4">
@@ -684,17 +685,17 @@ export const DashboardPage = () => {
   return (
     <>
       <div className="min-h-screen bg-slate-50 pb-24 md:pb-0 md:pl-64">
-        <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-zinc-900 text-white flex-col p-6 z-50">
-          <div className="flex items-center gap-3 mb-10 px-2"><div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center"><Clock size={24} strokeWidth={2.5} /></div><span className="text-xl font-black tracking-tight">TimeCare</span></div>
+        <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white/85 backdrop-blur-lg border-r border-slate-100 text-slate-800 flex-col p-6 z-50">
+          <div className="flex items-center gap-3 mb-10 px-2"><div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-white"><Clock size={24} strokeWidth={2.5} /></div><span className="text-xl font-black tracking-tight">TimeCare</span></div>
           <nav className="flex-1 flex flex-col gap-2">
             {navItems.map((item) => (
-              <button key={item.id} onClick={() => setActiveSection(item.id)} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${item.id === activeSection ? 'bg-pink-600 text-white shadow-lg shadow-pink-900/20' : 'text-slate-400 hover:text-white hover:bg-zinc-800'}`}>
+              <button key={item.id} onClick={() => setActiveSection(item.id)} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${item.id === activeSection ? 'bg-pink-600 text-white shadow-lg shadow-pink-200/70' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}>
                 <item.icon size={20} />
                 <span className="font-semibold">{item.label}</span>
               </button>
             ))}
           </nav>
-          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-400/10 transition-all mt-auto"><LogOut size={20} /><span className="font-semibold">Sair</span></button>
+          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all mt-auto"><LogOut size={20} /><span className="font-semibold">Sair</span></button>
         </aside>
 
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100 px-6 py-4 flex items-center justify-between gap-3">

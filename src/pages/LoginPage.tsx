@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Clock, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Clock, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Button } from '../components/ui/Button';
@@ -34,36 +34,27 @@ export const LoginPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-5"
+        className="relative w-full max-w-xl rounded-[2.2rem] border border-white/70 bg-white/85 backdrop-blur-md shadow-2xl shadow-rose-100/60 overflow-hidden"
       >
-        <div className="hidden lg:flex flex-col justify-between rounded-[2rem] border border-white/70 bg-gradient-to-b from-slate-900 to-slate-800 text-white p-8 shadow-2xl">
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-pink-500/90 flex items-center justify-center">
-                <Clock size={26} strokeWidth={2.6} />
-              </div>
-              <div>
-                <p className="text-2xl font-black tracking-tight">TimeCare</p>
-                <p className="text-slate-300 text-sm">Gestao para clinicas modernas</p>
-              </div>
+        <div className="px-8 py-7 bg-gradient-to-r from-pink-500 to-rose-500 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+              <Clock size={24} strokeWidth={2.5} />
             </div>
-            <h2 className="text-3xl font-black leading-tight mb-3">Controle financeiro, clientes e procedimentos em um unico painel.</h2>
-            <p className="text-slate-300">Entre com sua conta para acompanhar as metricas da clinica e manter o atendimento organizado.</p>
+            <div>
+              <p className="text-2xl font-black tracking-tight">TimeCare</p>
+              <p className="text-pink-100 text-sm">Gestao para clinicas modernas</p>
+            </div>
           </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-slate-200 text-sm"><ShieldCheck size={16} /> Sessao segura com JWT</div>
-            <div className="flex items-center gap-2 text-slate-200 text-sm"><Sparkles size={16} /> Interface otimizada para desktop e mobile</div>
-          </div>
+          <p className="text-sm text-pink-50/95">Acesse para acompanhar clientes, procedimentos e metricas da clinica.</p>
         </div>
 
-        <div className="bg-white/90 backdrop-blur rounded-[2rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/60">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 bg-pink-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-pink-200 mb-4">
-              <Clock size={28} strokeWidth={2.5} />
+        <div className="px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Entrar no sistema</h1>
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 rounded-full">
+              <ShieldCheck size={14} /> Sessao segura
             </div>
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Acessar TimeCare</h1>
-            <p className="text-slate-500 font-medium mt-1">Veja como esta sua clinica hoje.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -85,12 +76,12 @@ export const LoginPage = () => {
               required
             />
 
-            <Button type="submit" isLoading={isLoading} className="mt-2 w-full py-4 text-lg" disabled={isLoading}>
-              Entrar no sistema
+            <Button type="submit" isLoading={isLoading} className="mt-2 w-full py-4 text-lg" disabled={isLoading} icon={ArrowRight}>
+              Entrar
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-400">Ainda nao tem acesso? Fale com o suporte.</p>
+          <p className="mt-6 text-center text-sm text-slate-500">Ainda nao tem acesso? Fale com o suporte.</p>
         </div>
       </motion.div>
     </div>
