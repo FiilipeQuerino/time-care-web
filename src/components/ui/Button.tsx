@@ -1,0 +1,62 @@
+import React from 'react';
+import { motion } from 'motion/react';
+import { LucideIcon } from 'lucide-react';
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
+  icon?: LucideIcon;
+  isLoading?: boolean;
+  children?: React.ReactNode;
+  className?: string;
+  type?: 'button' | 'submit' | 'reset';
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+}
+
+export const Button = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  icon: Icon,
+  isLoading,
+  className = '',
+  ...props
+}: ButtonProps) => {
+  const variants = {
+    primary: 'bg-pink-600 text-white hover:bg-pink-700 shadow-pink-200',
+    secondary: 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-200',
+    outline: 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50',
+    ghost: 'text-slate-600 hover:bg-slate-100',
+  };
+
+  const sizes = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-5 py-2.5 text-base',
+    lg: 'px-8 py-3.5 text-lg',
+    icon: 'p-2.5',
+  };
+
+  return (
+    <motion.button
+      whileTap={{ scale: 0.97 }}
+      className={`
+        relative flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200
+        disabled:opacity-50 disabled:cursor-not-allowed
+        ${variants[variant]}
+        ${sizes[size]}
+        ${className}
+      `}
+      {...props}
+    >
+      {isLoading ? (
+        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      ) : (
+        <>
+          {Icon && <Icon size={20} />}
+          {children}
+        </>
+      )}
+    </motion.button>
+  );
+};

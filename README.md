@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# TimeCare - Sistema de Gestão para Clínica de Estética
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+O **TimeCare** é uma aplicação web moderna, desenvolvida com foco total em dispositivos móveis (**mobile-first**), projetada especificamente para atender às necessidades de gestão de uma **clínica de estética de alto padrão**. O sistema combina elegância visual com funcionalidade robusta para oferecer uma experiência premium tanto para administradores quanto para profissionais da saúde e beleza.
 
-Currently, two official plugins are available:
+## 🎯 Objetivo do Projeto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+O projeto visa centralizar a gestão da clínica em uma interface sofisticada e intuitiva. O nome "TimeCare" reflete o compromisso com a gestão eficiente do tempo e o cuidado humanizado com o cliente.
 
-## React Compiler
+### Funcionalidades Iniciais:
+- **Autenticação Segura**: Tela de login com validações e animações fluidas.
+- **Dashboard Inteligente**: Visão geral da clínica com indicadores de performance (KPIs).
+- **Navegação Adaptativa**: Menu inferior para celulares e barra lateral para tablets/desktops.
+- **Gestão de Identidade**: Perfil de usuário com avatares dinâmicos.
+- **Estrutura para Expansão**: Menus preparados para Clientes, Agenda, Estoque, Relatórios e Configurações.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🎨 Design e Experiência do Usuário (UX/UI)
 
-## Expanding the ESLint configuration
+- **Tema Rosa Moderno**: Uma paleta sofisticada baseada em tons de Pink e Rose, ideal para o setor de estética, transmitindo cuidado, modernidade e profissionalismo.
+- **Interface Limpa**: Uso estratégico de espaços em branco e sombras suaves para reduzir a carga cognitiva.
+- **Animações Fluidas**: Transições de tela e microinterações em botões e inputs utilizando `motion`.
+- **Responsividade Total**: Layout que se adapta perfeitamente de um smartphone a um tablet de 12 polegadas.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🏗️ Estrutura do Projeto
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+A arquitetura foi pensada para ser escalável e de fácil manutenção, seguindo as melhores práticas de desenvolvimento React:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+├── components/       # Componentes de interface reutilizáveis
+│   ├── ui/           # Átomos de UI (Botões, Inputs, etc)
+│   └── StatCard.tsx  # Cards de indicadores do Dashboard
+├── context/          # Provedores de estado global (Autenticação)
+├── hooks/            # Hooks customizados para lógica de negócio
+├── pages/            # Telas principais da aplicação
+│   ├── LoginPage.tsx
+│   └── DashboardPage.tsx
+├── styles/           # Definições de tema e estilos globais
+├── types/            # Interfaces e tipos TypeScript
+└── utils/            # Funções utilitárias e helpers
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Tecnologias Utilizadas
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **React 19**: Biblioteca principal para construção da interface.
+- **TypeScript**: Garantia de código tipado e menos bugs em produção.
+- **Tailwind CSS 4**: Estilização rápida, moderna e altamente customizável.
+- **Motion (Framer Motion)**: Motor de animações para transições premium.
+- **Lucide React**: Biblioteca de ícones vetoriais leves e elegantes.
+- **Context API**: Gerenciamento de estado de autenticação sem bibliotecas externas pesadas.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🛠️ Como Expandir
+
+O projeto foi entregue como uma base sólida ("Boilerplate Premium"). Para evoluir o sistema:
+
+1. **Implementar Rotas**: Adicionar `react-router-dom` para navegar entre as páginas de Clientes, Agenda, etc.
+2. **Conectar ao Backend**: Integrar com Firebase ou uma API REST nos serviços de `AuthContext`.
+3. **Novas Telas**: Criar os arquivos correspondentes em `src/pages/` seguindo o padrão visual estabelecido no Dashboard.
+
+---
+*Desenvolvido como um protótipo de alta fidelidade para a TimeCare - Estética & Bem-estar.*
