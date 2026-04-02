@@ -5,11 +5,7 @@ interface InputProps {
   label?: string;
   error?: string;
   className?: string;
-  type?: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
-  required?: boolean;
+  [key: string]: unknown;
 }
 
 export const Input = ({ label, error, className = '', ...props }: InputProps) => {
