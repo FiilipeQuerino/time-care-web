@@ -5,6 +5,8 @@ import { Input } from '../../../components/ui/Input';
 
 interface EditClientModalProps {
   isOpen: boolean;
+  title?: string;
+  submitLabel?: string;
   name: string;
   email: string;
   phone: string;
@@ -20,6 +22,8 @@ interface EditClientModalProps {
 
 export const EditClientModal = ({
   isOpen,
+  title = 'Editar cliente',
+  submitLabel = 'Salvar alteracoes',
   name,
   email,
   phone,
@@ -37,7 +41,7 @@ export const EditClientModal = ({
   return (
     <div className="fixed inset-0 z-[90] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="w-full max-w-lg bg-white rounded-2xl border border-slate-100 shadow-xl p-6">
-        <h3 className="text-lg font-bold text-slate-800 mb-4">Editar cliente</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-4">{title}</h3>
         <form onSubmit={onSubmit} className="space-y-4">
           <Input label="Nome" value={name} onChange={(e) => onChangeName(e.target.value)} required />
           <Input label="E-mail" type="email" value={email} onChange={(e) => onChangeEmail(e.target.value)} required />
@@ -55,7 +59,7 @@ export const EditClientModal = ({
               Cancelar
             </Button>
             <Button type="submit" isLoading={isSaving} disabled={isSaving}>
-              Salvar alteracoes
+              {submitLabel}
             </Button>
           </div>
         </form>

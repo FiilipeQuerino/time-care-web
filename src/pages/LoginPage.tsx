@@ -17,7 +17,6 @@ export const LoginPage = () => {
 
     try {
       await login(email, password);
-      showToast('Login realizado com sucesso.', 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao realizar login.';
       showToast(message, 'error');

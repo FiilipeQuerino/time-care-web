@@ -99,3 +99,5 @@ export interface CreateProcedurePayload {
   estimatedDurationInMinutes: number;
   category: number;
 }
+
+export interface UpdateProcedurePayload extends CreateProcedurePayload {}

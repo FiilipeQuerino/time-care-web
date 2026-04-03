@@ -7,6 +7,7 @@ import {
   UpdateClientPayload,
   Procedure,
   CreateProcedurePayload,
+  UpdateProcedurePayload,
 } from '../types';
 import { apiRequest } from './api';
 
@@ -102,6 +103,20 @@ export async function createProcedure(token: string, payload: CreateProcedurePay
 
   if (!response.success) {
     throw new Error(response.message || 'Nao foi possivel cadastrar o procedimento.');
+  }
+
+  return response.data;
+}
+
+export async function updateProcedure(token: string, procedureId: number, payload: UpdateProcedurePayload): Promise<Procedure> {
+  const response = await apiRequest<ApiResponse<Procedure>>(`/api/Procedure/${procedureId}`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.success) {
+    throw new Error(response.message || 'Nao foi possivel atualizar o procedimento.');
   }
 
   return response.data;

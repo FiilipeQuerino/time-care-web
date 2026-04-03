@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react';
+import { BellRing, DatabaseBackup, LockKeyhole, ShieldCheck, UserCog } from 'lucide-react';
 
 interface ConfigSectionProps {
   notificationEnabled: boolean;
@@ -19,41 +19,67 @@ export const ConfigSection = ({
   onToggleAutoBackup,
   onToggleTwoFactor,
 }: ConfigSectionProps) => (
-  <div className="space-y-6">
-    <div className="bg-white border border-slate-100 rounded-[2rem] p-6">
-      <div className="flex items-center gap-2 mb-2">
-        <ShieldCheck size={18} className="text-emerald-600" />
-        <p className="font-semibold text-slate-700">Configuracoes gerais</p>
+  <div className="space-y-5">
+    <div className="bg-white border border-slate-100 rounded-[1.5rem] p-5 sm:p-6">
+      <div className="flex items-center gap-2 mb-1">
+        <ShieldCheck size={18} className="text-pink-600" />
+        <p className="font-semibold text-slate-700">Configuracoes</p>
       </div>
-      <h3 className="text-2xl font-black text-slate-800 mb-2">Personalize o funcionamento da clinica</h3>
-      <p className="text-slate-500">Tela pronta para acoplar endpoints de preferencias e seguranca.</p>
+      <h3 className="text-2xl font-black text-slate-800">Ajustes da clinica</h3>
     </div>
 
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div className="bg-white border border-slate-100 rounded-2xl p-5">
-        <h4 className="font-bold text-slate-800 mb-4">Notificacoes</h4>
-        <div className="space-y-3">
-          <button onClick={onToggleNotification} className="w-full flex items-center justify-between border border-slate-100 rounded-xl px-4 py-3 text-left hover:bg-slate-50">
-            <span className="text-slate-700 font-medium">Lembretes automaticos</span>
-            <span className={`text-xs px-2 py-1 rounded-full ${notificationEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{notificationEnabled ? 'Ativo' : 'Inativo'}</span>
-          </button>
-          <button onClick={onToggleAutoBackup} className="w-full flex items-center justify-between border border-slate-100 rounded-xl px-4 py-3 text-left hover:bg-slate-50">
-            <span className="text-slate-700 font-medium">Backup automatico diario</span>
-            <span className={`text-xs px-2 py-1 rounded-full ${autoBackupEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{autoBackupEnabled ? 'Ativo' : 'Inativo'}</span>
-          </button>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <button onClick={onToggleNotification} className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="rounded-xl bg-pink-50 p-2 text-pink-600"><BellRing size={18} /></span>
+            <div>
+              <p className="font-semibold text-slate-800">Notificacoes</p>
+              <p className="text-xs text-slate-500">Lembretes automaticos</p>
+            </div>
+          </div>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${notificationEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+            {notificationEnabled ? 'Ativo' : 'Inativo'}
+          </span>
         </div>
-      </div>
+      </button>
 
-      <div className="bg-white border border-slate-100 rounded-2xl p-5">
-        <h4 className="font-bold text-slate-800 mb-4">Seguranca</h4>
-        <div className="space-y-3">
-          <button onClick={onToggleTwoFactor} className="w-full flex items-center justify-between border border-slate-100 rounded-xl px-4 py-3 text-left hover:bg-slate-50">
-            <span className="text-slate-700 font-medium">Autenticacao em dois fatores</span>
-            <span className={`text-xs px-2 py-1 rounded-full ${twoFactorEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{twoFactorEnabled ? 'Ativo' : 'Inativo'}</span>
-          </button>
-          <div className="border border-slate-100 rounded-xl px-4 py-3">
-            <p className="text-sm text-slate-600 mb-1">Sessao atual</p>
-            <p className="font-semibold text-slate-800">{userEmail}</p>
+      <button onClick={onToggleAutoBackup} className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="rounded-xl bg-sky-50 p-2 text-sky-600"><DatabaseBackup size={18} /></span>
+            <div>
+              <p className="font-semibold text-slate-800">Backup automatico</p>
+              <p className="text-xs text-slate-500">Copia diaria dos dados</p>
+            </div>
+          </div>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${autoBackupEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+            {autoBackupEnabled ? 'Ativo' : 'Inativo'}
+          </span>
+        </div>
+      </button>
+
+      <button onClick={onToggleTwoFactor} className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="rounded-xl bg-violet-50 p-2 text-violet-600"><LockKeyhole size={18} /></span>
+            <div>
+              <p className="font-semibold text-slate-800">Seguranca 2FA</p>
+              <p className="text-xs text-slate-500">Autenticacao em dois fatores</p>
+            </div>
+          </div>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${twoFactorEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+            {twoFactorEnabled ? 'Ativo' : 'Inativo'}
+          </span>
+        </div>
+      </button>
+
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="rounded-xl bg-amber-50 p-2 text-amber-600"><UserCog size={18} /></span>
+          <div>
+            <p className="font-semibold text-slate-800">Conta conectada</p>
+            <p className="text-xs text-slate-500 break-all">{userEmail}</p>
           </div>
         </div>
       </div>
