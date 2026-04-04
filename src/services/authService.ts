@@ -1,4 +1,5 @@
-import { ApiResponse, LoginResponseData } from '../types';
+import { ApiResponse } from '../types/api';
+import { LoginResponseData } from '../types/auth';
 import { apiRequest } from './api';
 
 interface LoginPayload {

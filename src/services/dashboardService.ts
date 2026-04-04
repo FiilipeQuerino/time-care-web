@@ -1,14 +1,7 @@
-import {
-  ApiResponse,
-  DashboardFinancialData,
-  Client,
-  PaginationMeta,
-  CreateClientPayload,
-  UpdateClientPayload,
-  Procedure,
-  CreateProcedurePayload,
-  UpdateProcedurePayload,
-} from '../types';
+import { ApiResponse, PaginationMeta } from '../types/api';
+import { DashboardFinancialData } from '../types/dashboard';
+import { Client, CreateClientPayload, UpdateClientPayload } from '../types/client';
+import { Procedure, CreateProcedurePayload, UpdateProcedurePayload } from '../types/procedure';
 import { apiRequest } from './api';
 
 export async function fetchDashboardFinancial(token: string): Promise<DashboardFinancialData> {

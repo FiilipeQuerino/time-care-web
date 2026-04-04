@@ -12,7 +12,7 @@ import {
   Users,
   Package,
 } from 'lucide-react';
-import { MenuSection } from '../../types';
+import { MenuSection } from '../../types/navigation';
 import { ClientStatusFilter, ReportCategory, ReportDefinition, ReportPeriod } from './types';
 
 export const navItems: Array<{ id: MenuSection; label: string; icon: LucideIcon }> = [

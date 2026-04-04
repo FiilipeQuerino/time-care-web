@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Plus, UserCheck, UserX } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { Client } from '../../../types';
+import { Client } from '../../../types/client';
 import { clientStatusOptions } from '../constants';
 import { ClientStatusFilter } from '../types';
 import { ClientsSkeleton } from '../components/Skeletal';

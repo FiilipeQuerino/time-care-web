@@ -3,7 +3,8 @@ import { Bell, Clock, LogOut, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Button } from '../components/ui/Button';
-import { DashboardFinancialData, MenuSection } from '../types';
+import { DashboardFinancialData } from '../types/dashboard';
+import { MenuSection } from '../types/navigation';
 import { fetchDashboardFinancial } from '../services/dashboardService';
 import { navItems } from './dashboard/constants';
 import { PlaceholderSection } from './dashboard/sections/PlaceholderSection';
@@ -12,6 +13,7 @@ import { ClientsSection } from './dashboard/sections/ClientsSection';
 import { ProceduresSection } from './dashboard/sections/ProceduresSection';
 import { ConfigSection } from './dashboard/sections/ConfigSection';
 import { ReportsSection } from './dashboard/sections/ReportsSection';
+import { AgendaSection } from './dashboard/sections/AgendaSection';
 
 export const DashboardPage = () => {
   const { user, logout, token } = useAuth();
@@ -149,11 +151,11 @@ export const DashboardPage = () => {
       return <ProceduresSection refreshTick={proceduresRefreshTick} />;
     }
 
-    if (activeSection === 'agenda') return <PlaceholderSection title="Agenda" />;
+    if (activeSection === 'agenda') return <AgendaSection />;
     if (activeSection === 'estoque') return <PlaceholderSection title="Estoque" />;
 
     if (activeSection === 'relatorios') {
-      return <ReportsSection onRefresh={() => void loadFinancialData()} />;
+      return <ReportsSection />;
     }
 
     return (
@@ -171,7 +173,7 @@ export const DashboardPage = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50 pb-28 md:pb-0 md:pl-64">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-sky-50 to-violet-50 pb-28 md:pb-0 md:pl-64">
         <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white/85 backdrop-blur-lg border-r border-slate-100 text-slate-800 flex-col p-6 z-50">
           <div className="flex items-center gap-3 mb-10 px-2"><div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-white"><Clock size={24} strokeWidth={2.5} /></div><span className="text-xl font-black tracking-tight">TimeCare</span></div>
           <nav className="flex-1 flex flex-col gap-2">
@@ -185,7 +187,7 @@ export const DashboardPage = () => {
           <button onClick={logout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all mt-auto"><LogOut size={20} /><span className="font-semibold">Sair</span></button>
         </aside>
 
-        <header className="bg-white/85 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-pink-100 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-pink-200"><Clock size={18} strokeWidth={2.5} /></div>
             <span className="text-lg font-black text-slate-800 leading-tight">TimeCare</span>

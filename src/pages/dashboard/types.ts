@@ -1,4 +1,5 @@
-import { Client, Procedure } from '../../types';
+import { Client } from '../../types/client';
+import { Procedure } from '../../types/procedure';
 
 export type ClientStatusFilter = 'all' | 'active' | 'inactive';
 export type ReportPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom';

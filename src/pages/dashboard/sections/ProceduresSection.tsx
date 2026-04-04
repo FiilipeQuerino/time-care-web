@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { Procedure } from '../../../types';
+import { Procedure } from '../../../types/procedure';
 import { formatCurrency, getProcedureCategoryLabel } from '../helpers';
 import { ProceduresSkeleton } from '../components/Skeletal';
 import { useAuth } from '../../../context/AuthContext';

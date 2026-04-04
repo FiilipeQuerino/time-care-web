@@ -1,11 +1,6 @@
 import { BarChart3, FileSpreadsheet, FileText, LineChart, Wallet } from 'lucide-react';
-import { Button } from '../../../components/ui/Button';
 
-interface ReportsSectionProps {
-  onRefresh: () => void;
-}
-
-export const ReportsSection = ({ onRefresh }: ReportsSectionProps) => (
+export const ReportsSection = () => (
   <div className="space-y-5">
     <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-1">
@@ -57,10 +52,5 @@ export const ReportsSection = ({ onRefresh }: ReportsSectionProps) => (
       </button>
     </div>
 
-    <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4">
-      <Button variant="outline" className="w-full" onClick={onRefresh}>
-        Atualizar dados
-      </Button>
-    </div>
   </div>
 );

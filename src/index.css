@@ -7,7 +7,16 @@
 
 @layer base {
   body {
-    @apply font-sans bg-slate-50 text-slate-900 antialiased;
+    @apply font-sans text-slate-900 antialiased;
+    background-image: radial-gradient(circle at 12% 0%, rgba(244, 114, 182, 0.14), transparent 34%),
+      radial-gradient(circle at 88% 12%, rgba(56, 189, 248, 0.14), transparent 36%),
+      linear-gradient(180deg, #fff7fb 0%, #f8fafc 55%, #f5f3ff 100%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(236, 72, 153, 0.24);
+    color: #4a044e;
   }
 }
 
@@ -23,4 +32,3 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }
-

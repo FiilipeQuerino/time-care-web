@@ -1,7 +1,7 @@
 import { Calendar, TrendingUp, Users } from 'lucide-react';
 import { StatCard } from '../../../components/StatCard';
 import { Button } from '../../../components/ui/Button';
-import { DashboardFinancialData } from '../../../types';
+import { DashboardFinancialData } from '../../../types/dashboard';
 import { formatCurrency } from '../helpers';
 import { DashboardSkeleton } from '../components/Skeletal';
 

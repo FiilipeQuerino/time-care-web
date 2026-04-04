@@ -1,4 +1,4 @@
-import { Client } from '../types';
+import { Client } from '../types/client';
 
 function sanitize(value: string): string {
   return value.replace(/[\n\r]+/g, ' ').trim();
