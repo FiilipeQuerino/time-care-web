@@ -21,7 +21,8 @@ interface AppointmentDetailsSheetProps {
   startTime: string;
   notes: string;
   status: AppointmentStatus;
-  isSubmitting: boolean;
+  isSaving: boolean;
+  isDeleting: boolean;
   onClose: () => void;
   onChangeClient: (client: Client) => void;
   onChangeProcedure: (procedure: Procedure) => void;
@@ -46,7 +47,8 @@ export const AppointmentDetailsSheet = ({
   startTime,
   notes,
   status,
-  isSubmitting,
+  isSaving,
+  isDeleting,
   onClose,
   onChangeClient,
   onChangeProcedure,
@@ -166,7 +168,8 @@ export const AppointmentDetailsSheet = ({
             icon={Trash2}
             className="h-11 border-rose-200 text-rose-600 hover:bg-rose-50"
             onClick={onDelete}
-            isLoading={isSubmitting}
+            isLoading={isDeleting}
+            disabled={isSaving || isDeleting}
           >
             Excluir
           </Button>
@@ -177,14 +180,15 @@ export const AppointmentDetailsSheet = ({
             variant="outline"
             className="h-11 border-slate-200 text-slate-600"
             onClick={onClose}
-            disabled={isSubmitting}
+            disabled={isSaving || isDeleting}
           >
             Fechar
           </Button>
           <Button
             className="h-11 bg-pink-600 text-white hover:bg-pink-700"
             onClick={onSave}
-            isLoading={isSubmitting}
+            isLoading={isSaving}
+            disabled={isSaving || isDeleting}
           >
             Salvar alteracoes
           </Button>

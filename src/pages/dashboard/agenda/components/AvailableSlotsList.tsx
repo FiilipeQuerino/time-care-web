@@ -131,7 +131,7 @@ export const AvailableSlotsList = ({
             })}
 
             <div
-              className="absolute top-0"
+              className="pointer-events-none absolute top-0"
               style={{
                 left: `${TIME_COLUMN_WIDTH}px`,
                 right: '8px',
@@ -145,7 +145,7 @@ export const AvailableSlotsList = ({
                   onClick={() => {
                     if (onOpenAppointment) onOpenAppointment(appointment);
                   }}
-                  className="absolute w-full rounded-xl border-l-4 border-fuchsia-100 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-rose-600 px-3 py-2 text-left text-white shadow-[0_12px_24px_rgba(190,24,93,0.35)] transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
+                  className="pointer-events-auto absolute w-full rounded-xl border-l-4 border-fuchsia-100 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-rose-600 px-3 py-2 text-left text-white shadow-[0_12px_24px_rgba(190,24,93,0.35)] transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
                   style={{
                     top: `${top}px`,
                     minHeight: `${height}px`,

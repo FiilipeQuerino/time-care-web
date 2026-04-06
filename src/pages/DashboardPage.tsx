@@ -1,23 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bell, Clock, LogOut, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
 import { Button } from '../components/ui/Button';
+import { FeatureComingSoonModal, NoticeModalType } from '../components/FeatureComingSoonModal';
 import { DashboardFinancialData } from '../types/dashboard';
 import { MenuSection } from '../types/navigation';
 import { fetchDashboardFinancial } from '../services/dashboardService';
 import { navItems } from './dashboard/constants';
-import { PlaceholderSection } from './dashboard/sections/PlaceholderSection';
 import { DashboardSection } from './dashboard/sections/DashboardSection';
 import { ClientsSection } from './dashboard/sections/ClientsSection';
 import { ProceduresSection } from './dashboard/sections/ProceduresSection';
-import { ConfigSection } from './dashboard/sections/ConfigSection';
 import { ReportsSection } from './dashboard/sections/ReportsSection';
 import { AgendaSection } from './dashboard/sections/AgendaSection';
 
 export const DashboardPage = () => {
   const { user, logout, token } = useAuth();
-  const { showToast } = useToast();
 
   const [activeSection, setActiveSection] = useState<MenuSection>('dashboard');
 
@@ -25,24 +22,25 @@ export const DashboardPage = () => {
   const [isLoadingFinancial, setIsLoadingFinancial] = useState(false);
   const [financialError, setFinancialError] = useState<string | null>(null);
 
-  const [notificationEnabled, setNotificationEnabled] = useState(true);
-  const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [noticeModal, setNoticeModal] = useState<{
+    isOpen: boolean;
+    type: NoticeModalType;
+    title: string;
+    message?: string;
+    helperText?: string;
+    confirmLabel?: string;
+  }>({
+    isOpen: false,
+    type: 'coming-soon',
+    title: '',
+  });
   const [clientsRefreshTick, setClientsRefreshTick] = useState(0);
   const [proceduresRefreshTick, setProceduresRefreshTick] = useState(0);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
 
-  const notifications = useMemo(
-    () => [
-      { id: 'n1', title: '3 confirmacoes pendentes', detail: 'Agenda de hoje precisa de confirmacao.', time: 'Agora' },
-      { id: 'n2', title: '2 faltas na semana', detail: 'Recomendado revisar lembretes automaticos.', time: '10 min' },
-      { id: 'n3', title: 'Meta de faturamento em 82%', detail: 'Faltam R$ 3.200 para bater a meta mensal.', time: '1 h' },
-    ],
-    [],
-  );
+  const notifications: Array<{ id: string; title: string; detail: string; time: string }> = [];
 
   const loadFinancialData = useCallback(async () => {
     if (!token) return;
@@ -53,11 +51,18 @@ export const DashboardPage = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao carregar dashboard financeiro.';
       setFinancialError(message);
-      showToast(message, 'error');
+      setNoticeModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Falha ao carregar dados',
+        message,
+        helperText: 'Verifique sua conexao e tente atualizar novamente.',
+        confirmLabel: 'Fechar',
+      });
     } finally {
       setIsLoadingFinancial(false);
     }
-  }, [showToast, token]);
+  }, [token]);
 
   useEffect(() => {
     if (activeSection === 'dashboard' && !financialData && !isLoadingFinancial) void loadFinancialData();
@@ -110,7 +115,27 @@ export const DashboardPage = () => {
 
     if (activeSection === 'procedimentos') {
       setProceduresRefreshTick((current) => current + 1);
+      return;
     }
+
+  };
+
+  const handleSectionChange = (nextSection: MenuSection) => {
+    if (nextSection === 'estoque' || nextSection === 'config') {
+      const label = nextSection === 'estoque' ? 'Estoque' : 'Configuracoes';
+      setNoticeModal({
+        isOpen: true,
+        type: 'coming-soon',
+        title: label,
+        message: 'Este modulo esta em fase final de desenvolvimento e sera liberado em uma proxima versao da plataforma.',
+        helperText: 'Assim que estiver disponivel, ele aparecera normalmente no menu com todos os recursos ativos.',
+        confirmLabel: 'Entendi',
+      });
+      setIsMobileMoreOpen(false);
+      return;
+    }
+
+    setActiveSection(nextSection);
   };
 
   const getNavItem = useCallback(
@@ -152,23 +177,11 @@ export const DashboardPage = () => {
     }
 
     if (activeSection === 'agenda') return <AgendaSection />;
-    if (activeSection === 'estoque') return <PlaceholderSection title="Estoque" />;
-
     if (activeSection === 'relatorios') {
       return <ReportsSection />;
     }
 
-    return (
-      <ConfigSection
-        notificationEnabled={notificationEnabled}
-        autoBackupEnabled={autoBackupEnabled}
-        twoFactorEnabled={twoFactorEnabled}
-        userEmail={user?.email ?? 'usuario@timecare.com'}
-        onToggleNotification={() => setNotificationEnabled((value) => !value)}
-        onToggleAutoBackup={() => setAutoBackupEnabled((value) => !value)}
-        onToggleTwoFactor={() => setTwoFactorEnabled((value) => !value)}
-      />
-    );
+    return null;
   };
 
   return (
@@ -180,7 +193,7 @@ export const DashboardPage = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => handleSectionChange(item.id)}
                 className={`group relative flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
                   item.id === activeSection
                     ? 'border-pink-200 bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-[0_12px_24px_rgba(236,72,153,0.35)]'
@@ -224,31 +237,34 @@ export const DashboardPage = () => {
                 aria-expanded={isNotificationsOpen}
               >
                 <Bell size={19} />
-                <span className="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 rounded-full bg-pink-600 text-white text-[10px] font-bold leading-4 text-center">
-                  {notifications.length}
-                </span>
+                {notifications.length > 0 ? (
+                  <span className="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 rounded-full bg-pink-600 text-white text-[10px] font-bold leading-4 text-center">
+                    {notifications.length}
+                  </span>
+                ) : null}
               </button>
 
               {isNotificationsOpen ? (
                 <div className="absolute right-0 mt-2 w-[min(90vw,340px)] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl z-50">
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-sm font-bold text-slate-800">Notificacoes</p>
-                    <button type="button" className="text-xs font-semibold text-pink-600 hover:text-pink-700">
-                      Marcar como lidas
-                    </button>
                   </div>
-                  <div className="space-y-2">
-                    {notifications.map((notification) => (
-                      <article key={notification.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                        <p className="text-sm font-semibold text-slate-800">{notification.title}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">{notification.detail}</p>
-                        <p className="mt-1 text-[11px] font-medium text-slate-400">{notification.time}</p>
-                      </article>
-                    ))}
-                  </div>
-                  <button type="button" className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-                    Ver todas
-                  </button>
+                  {notifications.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center">
+                      <p className="text-sm font-semibold text-slate-700">Sem notificacoes</p>
+                      <p className="mt-1 text-xs text-slate-500">Quando surgir algo importante, aparece aqui.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {notifications.map((notification) => (
+                        <article key={notification.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+                          <p className="text-sm font-semibold text-slate-800">{notification.title}</p>
+                          <p className="mt-0.5 text-xs text-slate-500">{notification.detail}</p>
+                          <p className="mt-1 text-[11px] font-medium text-slate-400">{notification.time}</p>
+                        </article>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -279,7 +295,7 @@ export const DashboardPage = () => {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => handleSectionChange(item.id)}
                     className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-xs font-semibold transition-colors ${
                       activeSection === item.id
                         ? 'border-pink-200 bg-pink-50 text-pink-700'
@@ -300,7 +316,7 @@ export const DashboardPage = () => {
             {mobilePrimaryNav.slice(0, 2).map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => handleSectionChange(item.id)}
                 aria-label={item.label}
                 className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
                   item.id === activeSection
@@ -315,7 +331,7 @@ export const DashboardPage = () => {
             {mobileAgendaItem ? (
               <button
                 type="button"
-                onClick={() => setActiveSection('agenda')}
+                onClick={() => handleSectionChange('agenda')}
                 aria-label={mobileAgendaItem.label}
                 className={`-mt-7 flex h-16 w-full flex-col items-center justify-center rounded-2xl border text-[10px] font-black uppercase tracking-wide shadow-lg transition-all ${
                   activeSection === 'agenda'
@@ -330,7 +346,7 @@ export const DashboardPage = () => {
             {mobilePrimaryNav.slice(3).map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => handleSectionChange(item.id)}
                 aria-label={item.label}
                 className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
                   item.id === activeSection
@@ -355,6 +371,16 @@ export const DashboardPage = () => {
           </div>
         </nav>
       </div>
+
+      <FeatureComingSoonModal
+        isOpen={noticeModal.isOpen}
+        type={noticeModal.type}
+        title={noticeModal.title}
+        message={noticeModal.message}
+        helperText={noticeModal.helperText}
+        confirmLabel={noticeModal.confirmLabel}
+        onClose={() => setNoticeModal((current) => ({ ...current, isOpen: false }))}
+      />
     </>
   );
 };

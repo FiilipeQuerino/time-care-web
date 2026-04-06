@@ -58,6 +58,8 @@ export const AgendaSection = () => {
   const [editStartTime, setEditStartTime] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [editStatus, setEditStatus] = useState<AppointmentStatus>('Scheduled');
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [isDeletingDetails, setIsDeletingDetails] = useState(false);
 
   const selectedDateValue = toDateInputValue(selectedDate);
   const selectedProcedure = procedures.find((item) => item.procedureId === createProcedureId) ?? null;
@@ -254,6 +256,7 @@ export const AgendaSection = () => {
     };
 
     try {
+      setIsSavingDetails(true);
       await update(selectedAppointment.appointmentId, payload);
       if (editStatus !== selectedAppointment.status) {
         await changeStatus(selectedAppointment.appointmentId, editStatus);
@@ -275,6 +278,8 @@ export const AgendaSection = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel atualizar o agendamento.';
       showToast(message, 'error');
+    } finally {
+      setIsSavingDetails(false);
     }
   };
 
@@ -282,9 +287,15 @@ export const AgendaSection = () => {
     if (!selectedAppointment) return;
 
     try {
+      setIsDeletingDetails(true);
       await remove(selectedAppointment.appointmentId);
       showToast('Agendamento excluido com sucesso.', 'success');
-      await loadDay(selectedDateValue);
+      const startDate = toDateInputValue(getMonthStart(fromDateInputValue(`${monthValue}-01`)));
+      const endDate = toDateInputValue(getMonthEnd(fromDateInputValue(`${monthValue}-01`)));
+      await Promise.all([
+        loadDay(selectedDateValue),
+        loadRange(startDate, endDate),
+      ]);
       if (createProcedureId) {
         await loadSlots(selectedDateValue, createProcedureId);
       }
@@ -292,6 +303,8 @@ export const AgendaSection = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel excluir o agendamento.';
       showToast(message, 'error');
+    } finally {
+      setIsDeletingDetails(false);
     }
   };
 
@@ -357,7 +370,8 @@ export const AgendaSection = () => {
         startTime={formatTime(editStartTime)}
         notes={editNotes}
         status={editStatus}
-        isSubmitting={isSubmitting}
+        isSaving={isSavingDetails}
+        isDeleting={isDeletingDetails}
         onClose={closeAppointmentDetails}
         onChangeClient={(client) => setEditClientId(client.clientId)}
         onChangeProcedure={(procedure) => setEditProcedureId(procedure.procedureId)}
