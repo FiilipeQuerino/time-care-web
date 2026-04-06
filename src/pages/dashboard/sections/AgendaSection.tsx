@@ -296,15 +296,15 @@ export const AgendaSection = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-5">
-      <section className="rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
+    <div className="space-y-3 md:space-y-4">
+      <section className="rounded-2xl border border-slate-100 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
         <div className="min-w-0">
           <h3 className="text-lg font-bold text-slate-800 sm:text-xl">Agenda</h3>
           <p className="text-sm text-slate-500">Selecione dia e horario.</p>
         </div>
       </section>
 
-      <section className="flex min-h-[calc(100vh-17.5rem)] flex-col rounded-[1.5rem] border border-slate-100 bg-white p-3 shadow-sm sm:min-h-[calc(100vh-14rem)] sm:p-4">
+      <section className="flex min-h-[calc(100vh-9.8rem)] flex-col rounded-2xl border border-slate-100 bg-white p-2.5 shadow-sm sm:min-h-[calc(100vh-10.2rem)] sm:p-4">
         <WeeklyCalendar
           weekStart={weekStart}
           selectedDate={selectedDate}

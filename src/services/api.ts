@@ -1,4 +1,4 @@
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   (import.meta.env.DEV ? '' : 'https://timecareapi.onrender.com');
 
@@ -48,4 +48,24 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   return responseData as T;
+}
+
+const warmedEndpoints = new Set<string>();
+
+export function warmupApi(path = '/', timeoutMs = 4000): void {
+  const endpoint = `${API_BASE_URL}${path}`;
+  if (warmedEndpoints.has(endpoint)) return;
+  warmedEndpoints.add(endpoint);
+
+  const abortController = new AbortController();
+  const timeoutId = window.setTimeout(() => abortController.abort(), timeoutMs);
+
+  void fetch(endpoint, {
+    method: 'GET',
+    signal: abortController.signal,
+  })
+    .catch(() => undefined)
+    .finally(() => {
+      window.clearTimeout(timeoutId);
+    });
 }

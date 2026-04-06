@@ -36,6 +36,7 @@ const normalizeAppointment = (raw: unknown): Appointment => {
     clientPhone: getValue<string>(source, 'clientPhone', 'ClientPhone'),
     procedureName: getValue<string>(source, 'procedureName', 'ProcedureName'),
     status: mapStatusFromApi(rawStatus, rawStatusLabel),
+    statusLabel: rawStatusLabel,
     startDateTime: String(getValue(source, 'startDateTime', 'startTime', 'StartDateTime', 'StartTime') ?? ''),
     endDateTime: getValue<string>(source, 'endDateTime', 'endTime', 'EndDateTime', 'EndTime'),
     durationInMinutes: Number(getValue(source, 'durationInMinutes', 'DurationInMinutes') ?? 0) || undefined,

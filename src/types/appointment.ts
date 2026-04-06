@@ -16,6 +16,7 @@ export interface Appointment {
   clientPhone?: string;
   procedureName?: string;
   status: AppointmentStatus;
+  statusLabel?: string;
   startDateTime: string;
   endDateTime?: string;
   durationInMinutes?: number;

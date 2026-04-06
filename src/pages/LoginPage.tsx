@@ -1,25 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Clock, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { warmupApi } from '../services/api';
 
 export const LoginPage = () => {
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
   const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    warmupApi('/');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       await login(email, password);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao realizar login.';
       showToast(message, 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,9 +96,9 @@ export const LoginPage = () => {
 
               <Button
                 type="submit"
-                isLoading={isLoading}
+                isLoading={isSubmitting}
                 className="mt-1.5 h-12 w-full rounded-xl bg-gradient-to-r from-pink-600 to-rose-500 text-[0.96rem] font-semibold text-white shadow-[0_10px_24px_rgba(236,72,153,0.34)] transition-all duration-200 hover:from-pink-700 hover:to-rose-600 hover:shadow-[0_14px_26px_rgba(236,72,153,0.4)] sm:mt-2 sm:h-[3.15rem] sm:rounded-2xl"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 icon={ArrowRight}
               >
                 Entrar na plataforma
