@@ -3,9 +3,15 @@ import { Bell, Clock, LogOut, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { FeatureComingSoonModal, NoticeModalType } from '../components/FeatureComingSoonModal';
+import { TutorialFlowModal } from '../components/TutorialFlowModal';
 import { DashboardFinancialData } from '../types/dashboard';
 import { MenuSection } from '../types/navigation';
 import { fetchDashboardFinancial } from '../services/dashboardService';
+import {
+  fetchOnboardingStatus,
+  markTutorialCompleted,
+  updateTutorialDecision,
+} from '../services/onboardingService';
 import { navItems } from './dashboard/constants';
 import { DashboardSection } from './dashboard/sections/DashboardSection';
 import { ClientsSection } from './dashboard/sections/ClientsSection';
@@ -14,7 +20,7 @@ import { ReportsSection } from './dashboard/sections/ReportsSection';
 import { AgendaSection } from './dashboard/sections/AgendaSection';
 
 export const DashboardPage = () => {
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, onboarding, onboardingResolved, setOnboardingFlags } = useAuth();
 
   const [activeSection, setActiveSection] = useState<MenuSection>('dashboard');
 
@@ -38,6 +44,9 @@ export const DashboardPage = () => {
   });
   const [clientsRefreshTick, setClientsRefreshTick] = useState(0);
   const [proceduresRefreshTick, setProceduresRefreshTick] = useState(0);
+  const [tutorialStage, setTutorialStage] = useState<'offer' | 'tutorial' | null>(null);
+  const [isTutorialLoading, setIsTutorialLoading] = useState(false);
+  const [tutorialError, setTutorialError] = useState<string | null>(null);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
 
   const notifications: Array<{ id: string; title: string; detail: string; time: string }> = [];
@@ -76,6 +85,47 @@ export const DashboardPage = () => {
   useEffect(() => {
     setIsMobileMoreOpen(false);
   }, [activeSection]);
+
+  useEffect(() => {
+    if (!token || onboardingResolved) return;
+
+    const resolveOnboarding = async () => {
+      try {
+        const status = await fetchOnboardingStatus(token);
+        setOnboardingFlags(
+          {
+            isFirstLogin: status.isFirstLogin,
+            shouldOfferTutorial: status.shouldOfferTutorial,
+            tutorialVersion: status.tutorialVersion,
+          },
+          true,
+        );
+      } catch {
+        setOnboardingFlags(null, true);
+        setNoticeModal({
+          isOpen: true,
+          type: 'alert',
+          title: 'Onboarding indisponivel',
+          message: 'Nao foi possivel verificar seu status de onboarding neste momento.',
+          helperText: 'Voce pode usar o sistema normalmente e tentar novamente em um novo login.',
+          confirmLabel: 'Ok',
+        });
+      }
+    };
+
+    void resolveOnboarding();
+  }, [onboardingResolved, setOnboardingFlags, token]);
+
+  useEffect(() => {
+    if (!onboardingResolved) return;
+
+    if (onboarding?.isFirstLogin && onboarding.shouldOfferTutorial) {
+      setTutorialStage('offer');
+      return;
+    }
+
+    setTutorialStage(null);
+  }, [onboarding, onboardingResolved]);
 
   useEffect(() => {
     if (!isNotificationsOpen) return;
@@ -118,6 +168,92 @@ export const DashboardPage = () => {
       return;
     }
 
+  };
+
+  const handleDeclineTutorial = async () => {
+    if (!token || !onboarding) return;
+
+    setIsTutorialLoading(true);
+    setTutorialError(null);
+
+    try {
+      const updated = await updateTutorialDecision(token, {
+        accepted: false,
+        tutorialVersion: onboarding.tutorialVersion,
+      });
+
+      setOnboardingFlags(
+        {
+          isFirstLogin: updated.isFirstLogin,
+          shouldOfferTutorial: updated.shouldOfferTutorial,
+          tutorialVersion: updated.tutorialVersion,
+        },
+        true,
+      );
+      setTutorialStage(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel registrar sua escolha.';
+      setTutorialError(message);
+    } finally {
+      setIsTutorialLoading(false);
+    }
+  };
+
+  const handleAcceptTutorial = async () => {
+    if (!token || !onboarding) return;
+
+    setIsTutorialLoading(true);
+    setTutorialError(null);
+
+    try {
+      const updated = await updateTutorialDecision(token, {
+        accepted: true,
+        tutorialVersion: onboarding.tutorialVersion,
+      });
+
+      setOnboardingFlags(
+        {
+          isFirstLogin: updated.isFirstLogin,
+          shouldOfferTutorial: updated.shouldOfferTutorial,
+          tutorialVersion: updated.tutorialVersion,
+        },
+        true,
+      );
+      setTutorialStage('tutorial');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel iniciar o tutorial.';
+      setTutorialError(message);
+    } finally {
+      setIsTutorialLoading(false);
+    }
+  };
+
+  const handleCompleteTutorial = async () => {
+    if (!token || !onboarding) return;
+
+    setIsTutorialLoading(true);
+    setTutorialError(null);
+
+    try {
+      const updated = await markTutorialCompleted(token, {
+        tutorialVersion: onboarding.tutorialVersion,
+      });
+
+      setOnboardingFlags(
+        {
+          isFirstLogin: updated.isFirstLogin,
+          shouldOfferTutorial: updated.shouldOfferTutorial,
+          tutorialVersion: updated.tutorialVersion,
+        },
+        true,
+      );
+      setTutorialStage(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel concluir o tutorial.';
+      setTutorialError(message);
+    } finally {
+      setIsTutorialLoading(false);
+    }
   };
 
   const handleSectionChange = (nextSection: MenuSection) => {
@@ -380,6 +516,16 @@ export const DashboardPage = () => {
         helperText={noticeModal.helperText}
         confirmLabel={noticeModal.confirmLabel}
         onClose={() => setNoticeModal((current) => ({ ...current, isOpen: false }))}
+      />
+
+      <TutorialFlowModal
+        isOpen={tutorialStage !== null}
+        stage={tutorialStage ?? 'offer'}
+        isLoading={isTutorialLoading}
+        errorMessage={tutorialError}
+        onAccept={() => void handleAcceptTutorial()}
+        onDecline={() => void handleDeclineTutorial()}
+        onComplete={() => void handleCompleteTutorial()}
       />
     </>
   );

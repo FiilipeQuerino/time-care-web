@@ -5,12 +5,20 @@ export interface User {
   role?: 'admin' | 'user';
 }
 
+export interface OnboardingLoginFlags {
+  isFirstLogin: boolean;
+  shouldOfferTutorial: boolean;
+  tutorialVersion: string;
+}
+
 export interface AuthState {
   user: User | null;
   token: string | null;
   expiresAt: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  onboarding: OnboardingLoginFlags | null;
+  onboardingResolved: boolean;
 }
 
 export interface LoginResponseData {
@@ -18,4 +26,5 @@ export interface LoginResponseData {
   email: string;
   userId: string;
   expiresAt: string;
+  onboarding?: OnboardingLoginFlags | null;
 }

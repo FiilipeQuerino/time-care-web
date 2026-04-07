@@ -7,8 +7,55 @@ interface LoginPayload {
   password: string;
 }
 
+const getValue = <T>(source: Record<string, unknown>, ...keys: string[]): T | undefined => {
+  for (const key of keys) {
+    if (key in source) return source[key] as T;
+  }
+  return undefined;
+};
+
+const normalizeLoginResponse = (raw: unknown): LoginResponseData => {
+  const source = (raw ?? {}) as Record<string, unknown>;
+  const onboardingRaw =
+    getValue<Record<string, unknown>>(source, 'onboarding', 'Onboarding') ?? null;
+
+  const onboardingFromNested = onboardingRaw
+    ? {
+        isFirstLogin: Boolean(getValue(onboardingRaw, 'isFirstLogin', 'IsFirstLogin') ?? false),
+        shouldOfferTutorial: Boolean(
+          getValue(onboardingRaw, 'shouldOfferTutorial', 'ShouldOfferTutorial') ?? false,
+        ),
+        tutorialVersion: String(getValue(onboardingRaw, 'tutorialVersion', 'TutorialVersion') ?? 'v1'),
+      }
+    : null;
+
+  const hasTopLevelOnboarding =
+    'isFirstLogin' in source ||
+    'IsFirstLogin' in source ||
+    'shouldOfferTutorial' in source ||
+    'ShouldOfferTutorial' in source;
+
+  const onboardingFromTopLevel = hasTopLevelOnboarding
+    ? {
+        isFirstLogin: Boolean(getValue(source, 'isFirstLogin', 'IsFirstLogin') ?? false),
+        shouldOfferTutorial: Boolean(
+          getValue(source, 'shouldOfferTutorial', 'ShouldOfferTutorial') ?? false,
+        ),
+        tutorialVersion: String(getValue(source, 'tutorialVersion', 'TutorialVersion') ?? 'v1'),
+      }
+    : null;
+
+  return {
+    token: String(getValue(source, 'token', 'Token') ?? ''),
+    email: String(getValue(source, 'email', 'Email') ?? ''),
+    userId: String(getValue(source, 'userId', 'UserId') ?? ''),
+    expiresAt: String(getValue(source, 'expiresAt', 'ExpiresAt') ?? ''),
+    onboarding: onboardingFromNested ?? onboardingFromTopLevel,
+  };
+};
+
 export async function loginRequest(payload: LoginPayload): Promise<LoginResponseData> {
-  const response = await apiRequest<ApiResponse<LoginResponseData>>('/api/Auth/login', {
+  const response = await apiRequest<ApiResponse<unknown>>('/api/Auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -17,5 +64,5 @@ export async function loginRequest(payload: LoginPayload): Promise<LoginResponse
     throw new Error(response.message || 'Nao foi possivel autenticar.');
   }
 
-  return response.data;
+  return normalizeLoginResponse(response.data);
 }

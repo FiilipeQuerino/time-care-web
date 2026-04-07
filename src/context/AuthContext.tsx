@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AuthState, User } from '../types/auth';
+import { AuthState, OnboardingLoginFlags, User } from '../types/auth';
 import { loginRequest } from '../services/authService';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  setOnboardingFlags: (flags: OnboardingLoginFlags | null, resolved?: boolean) => void;
 }
 
 interface StoredAuth {
@@ -23,6 +24,8 @@ const initialState: AuthState = {
   expiresAt: null,
   isAuthenticated: false,
   isLoading: true,
+  onboarding: null,
+  onboardingResolved: true,
 };
 
 function isTokenExpired(expiresAt: string): boolean {
@@ -58,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         expiresAt: session.expiresAt,
         isAuthenticated: true,
         isLoading: false,
+        onboarding: null,
+        onboardingResolved: true,
       });
     } catch {
       localStorage.removeItem(STORAGE_KEY);
@@ -80,6 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         expiresAt: loginData.expiresAt,
         isAuthenticated: true,
         isLoading: false,
+        onboarding: loginData.onboarding ?? null,
+        onboardingResolved: loginData.onboarding !== null && loginData.onboarding !== undefined,
       };
 
       localStorage.setItem(
@@ -100,6 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         expiresAt: null,
         isAuthenticated: false,
         isLoading: false,
+        onboarding: null,
+        onboardingResolved: true,
       }));
       throw error;
     }
@@ -113,10 +122,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       expiresAt: null,
       isAuthenticated: false,
       isLoading: false,
+      onboarding: null,
+      onboardingResolved: true,
     });
   };
 
-  return <AuthContext.Provider value={{ ...state, login, logout }}>{children}</AuthContext.Provider>;
+  const setOnboardingFlags = (flags: OnboardingLoginFlags | null, resolved = true) => {
+    setState((current) => ({
+      ...current,
+      onboarding: flags,
+      onboardingResolved: resolved,
+    }));
+  };
+
+  return <AuthContext.Provider value={{ ...state, login, logout, setOnboardingFlags }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
