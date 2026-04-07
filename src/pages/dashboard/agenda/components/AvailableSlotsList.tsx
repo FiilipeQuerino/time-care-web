@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { SlotItem } from '../../../../hooks/useAvailableSlots';
 import { Appointment } from '../../../../types/appointment';
 import { getAppointmentTimeRange, toMinutes } from '../dateUtils';
+import { getAppointmentStatusVisual } from '../statusVisual';
 
 interface AvailableSlotsListProps {
   slots: SlotItem[];
@@ -139,32 +140,35 @@ export const AvailableSlotsList = ({
               }}
             >
               {visibleAppointments.map(({ appointment, top, height, intervalLabel }) => (
-                <button
-                  key={appointment.appointmentId}
-                  type="button"
-                  onClick={() => {
-                    if (onOpenAppointment) onOpenAppointment(appointment);
-                  }}
-                  className="pointer-events-auto absolute w-full rounded-xl border-l-4 border-fuchsia-100 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-rose-600 px-3 py-2 text-left text-white shadow-[0_12px_24px_rgba(190,24,93,0.35)] transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
-                  style={{
-                    top: `${top}px`,
-                    minHeight: `${height}px`,
-                  }}
-                  aria-label={`Agendamento ${intervalLabel} de ${appointment.clientName || `Cliente ${appointment.clientId}`}`}
-                >
-                  <p className="text-[11px] font-semibold tracking-wide text-fuchsia-100">{intervalLabel}</p>
-                  <p className="mt-0.5 truncate text-sm font-bold text-white">
-                    {appointment.clientName || `Cliente #${appointment.clientId}`}
-                  </p>
-                  <p className="truncate text-xs font-medium text-rose-100">
-                    {appointment.procedureName || `Procedimento #${appointment.procedureId}`}
-                  </p>
-                  {appointment.statusLabel ? (
-                    <p className="mt-1 inline-flex rounded-full border border-white/25 bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white">
-                      {appointment.statusLabel}
-                    </p>
-                  ) : null}
-                </button>
+                (() => {
+                  const statusVisual = getAppointmentStatusVisual(appointment.status, appointment.statusLabel);
+                  return (
+                    <button
+                      key={appointment.appointmentId}
+                      type="button"
+                      onClick={() => {
+                        if (onOpenAppointment) onOpenAppointment(appointment);
+                      }}
+                      className={`pointer-events-auto absolute w-full rounded-xl border-l-4 px-3 py-2 text-left transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-pink-300 ${statusVisual.cardClassName}`}
+                      style={{
+                        top: `${top}px`,
+                        minHeight: `${height}px`,
+                      }}
+                      aria-label={`Agendamento ${intervalLabel} de ${appointment.clientName || `Cliente ${appointment.clientId}`}`}
+                    >
+                      <p className="text-[11px] font-semibold tracking-wide opacity-80">{intervalLabel}</p>
+                      <p className="mt-0.5 truncate text-sm font-bold">
+                        {appointment.clientName || `Cliente #${appointment.clientId}`}
+                      </p>
+                      <p className="truncate text-xs font-medium opacity-80">
+                        {appointment.procedureName || `Procedimento #${appointment.procedureId}`}
+                      </p>
+                      <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusVisual.badgeClassName}`}>
+                        {statusVisual.label}
+                      </p>
+                    </button>
+                  );
+                })()
               ))}
             </div>
           </div>

@@ -61,14 +61,21 @@ const mapStatusFromApi = (status: unknown, statusLabel?: string): AppointmentSta
     if (status === 1) return 'Confirmed';
     if (status === 2) return 'Completed';
     if (status === 3) return 'Cancelled';
+    if (status === 4) return 'NoShow';
   }
 
-  if (typeof status === 'string' && status.trim()) return status;
+  if (typeof status === 'string' && status.trim()) {
+    const normalized = status.trim().toLowerCase();
+    if (normalized === 'noshow' || normalized === 'no_show' || normalized === 'no-show') return 'NoShow';
+    return status;
+  }
   if (statusLabel) {
-    if (statusLabel.toLowerCase().includes('agend')) return 'Scheduled';
-    if (statusLabel.toLowerCase().includes('confirm')) return 'Confirmed';
-    if (statusLabel.toLowerCase().includes('concl')) return 'Completed';
-    if (statusLabel.toLowerCase().includes('cancel')) return 'Cancelled';
+    const normalizedLabel = statusLabel.toLowerCase();
+    if (normalizedLabel.includes('agend')) return 'Scheduled';
+    if (normalizedLabel.includes('confirm')) return 'Confirmed';
+    if (normalizedLabel.includes('concl')) return 'Completed';
+    if (normalizedLabel.includes('cancel')) return 'Cancelled';
+    if (normalizedLabel.includes('falt') || normalizedLabel.includes('no show')) return 'NoShow';
   }
 
   return 'Scheduled';
@@ -79,6 +86,7 @@ const mapStatusToApi = (status: AppointmentStatus): number => {
   if (status === 'Confirmed') return 1;
   if (status === 'Completed') return 2;
   if (status === 'Cancelled') return 3;
+  if (status === 'NoShow') return 4;
   return 0;
 };
 

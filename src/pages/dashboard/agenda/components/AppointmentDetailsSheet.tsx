@@ -9,6 +9,7 @@ import { Procedure } from '../../../../types/procedure';
 import { ClientSearchCombobox } from './ClientSearchCombobox';
 import { ProcedureSearchCombobox } from './ProcedureSearchCombobox';
 import { getAppointmentTimeRange } from '../dateUtils';
+import { appointmentStatusOptions } from '../statusVisual';
 
 interface AppointmentDetailsSheetProps {
   isOpen: boolean;
@@ -33,8 +34,6 @@ interface AppointmentDetailsSheetProps {
   onSave: () => void;
   onDelete: () => void;
 }
-
-const statusOptions: AppointmentStatus[] = ['Scheduled', 'Confirmed', 'Completed', 'Cancelled'];
 
 export const AppointmentDetailsSheet = ({
   isOpen,
@@ -136,9 +135,9 @@ export const AppointmentDetailsSheet = ({
               onChange={(event) => onChangeStatus(event.target.value)}
               className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 focus:border-pink-500 focus:bg-white focus:outline-none"
             >
-              {statusOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              {appointmentStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>

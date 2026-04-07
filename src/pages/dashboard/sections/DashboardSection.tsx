@@ -152,7 +152,7 @@ export const DashboardSection = ({ isLoading, error, financialData, onRetry }: D
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div data-onboarding-target="dashboard-overview" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard title="Receita Total" value={formatCurrency(summary.totalRevenue)} icon={TrendingUp} color="bg-emerald-500" />
         <StatCard title="Agendamentos Total" value={summary.totalAppointments} icon={Calendar} color="bg-rose-500" />
         <StatCard title="Receita Hoje" value={formatCurrency(summary.todayRevenue)} icon={TrendingUp} />

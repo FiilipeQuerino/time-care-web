@@ -18,6 +18,7 @@ import { ClientsSection } from './dashboard/sections/ClientsSection';
 import { ProceduresSection } from './dashboard/sections/ProceduresSection';
 import { ReportsSection } from './dashboard/sections/ReportsSection';
 import { AgendaSection } from './dashboard/sections/AgendaSection';
+import { TutorialStep } from '../components/TutorialFlowModal';
 
 export const DashboardPage = () => {
   const { user, logout, token, onboarding, onboardingResolved, setOnboardingFlags } = useAuth();
@@ -45,11 +46,55 @@ export const DashboardPage = () => {
   const [clientsRefreshTick, setClientsRefreshTick] = useState(0);
   const [proceduresRefreshTick, setProceduresRefreshTick] = useState(0);
   const [tutorialStage, setTutorialStage] = useState<'offer' | 'tutorial' | null>(null);
+  const [tutorialStepIndex, setTutorialStepIndex] = useState(0);
   const [isTutorialLoading, setIsTutorialLoading] = useState(false);
   const [tutorialError, setTutorialError] = useState<string | null>(null);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
 
   const notifications: Array<{ id: string; title: string; detail: string; time: string }> = [];
+  const tutorialSteps: TutorialStep[] = [
+    {
+      id: 'dashboard-overview',
+      section: 'dashboard',
+      title: 'Comece por aqui',
+      description: 'Aqui voce acompanha rapidamente os indicadores principais.',
+      tip: 'Receita e agendamentos ficam visiveis neste bloco inicial.',
+      targetElement: '[data-onboarding-target="dashboard-overview"]',
+      placement: 'bottom',
+      compact: true,
+      connector: 'none',
+      highlightPadding: 6,
+    },
+    {
+      id: 'nav-clients',
+      section: 'clientes',
+      title: 'Gestao de clientes',
+      description: 'Cadastre, pesquise e mantenha os dados da sua base de clientes.',
+      tip: 'Comece adicionando seus clientes mais recorrentes.',
+      targetElement: '[data-onboarding-target="nav-clientes"]',
+      placement: 'right',
+    },
+    {
+      id: 'nav-procedures',
+      section: 'procedimentos',
+      title: 'Procedimentos',
+      description: 'Organize os servicos com preco, duracao e categoria.',
+      tip: 'Defina os procedimentos principais para acelerar os agendamentos.',
+      targetElement: '[data-onboarding-target="nav-procedimentos"]',
+      placement: 'right',
+    },
+    {
+      id: 'nav-agenda',
+      section: 'agenda',
+      title: 'Agenda',
+      description: 'Gerencie horarios e acompanhe os atendimentos do dia.',
+      tip: 'Clique nos horarios livres para criar agendamentos rapidamente.',
+      targetElement: '[data-onboarding-target="nav-agenda"]',
+      placement: 'right',
+    },
+  ];
+  const currentTutorialTarget =
+    tutorialStage === 'tutorial' ? tutorialSteps[tutorialStepIndex]?.section ?? null : null;
 
   const loadFinancialData = useCallback(async () => {
     if (!token) return;
@@ -87,7 +132,8 @@ export const DashboardPage = () => {
   }, [activeSection]);
 
   useEffect(() => {
-    if (!token || onboardingResolved) return;
+    if (!token) return;
+    if (onboardingResolved && onboarding) return;
 
     const resolveOnboarding = async () => {
       try {
@@ -114,18 +160,27 @@ export const DashboardPage = () => {
     };
 
     void resolveOnboarding();
-  }, [onboardingResolved, setOnboardingFlags, token]);
+  }, [onboarding, onboardingResolved, setOnboardingFlags, token]);
 
   useEffect(() => {
     if (!onboardingResolved) return;
+    if (tutorialStage !== null) return;
 
-    if (onboarding?.isFirstLogin && onboarding.shouldOfferTutorial) {
+    if (onboarding?.shouldOfferTutorial) {
       setTutorialStage('offer');
+      setTutorialStepIndex(0);
       return;
     }
 
     setTutorialStage(null);
-  }, [onboarding, onboardingResolved]);
+  }, [onboarding, onboardingResolved, tutorialStage]);
+
+  useEffect(() => {
+    if (tutorialStage !== 'tutorial') return;
+    const step = tutorialSteps[tutorialStepIndex];
+    if (!step) return;
+    setActiveSection(step.section);
+  }, [tutorialStage, tutorialStepIndex]);
 
   useEffect(() => {
     if (!isNotificationsOpen) return;
@@ -219,6 +274,7 @@ export const DashboardPage = () => {
         },
         true,
       );
+      setTutorialStepIndex(0);
       setTutorialStage('tutorial');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel iniciar o tutorial.';
@@ -254,6 +310,14 @@ export const DashboardPage = () => {
     } finally {
       setIsTutorialLoading(false);
     }
+  };
+
+  const handleNextTutorialStep = () => {
+    setTutorialStepIndex((current) => Math.min(current + 1, tutorialSteps.length - 1));
+  };
+
+  const handleBackTutorialStep = () => {
+    setTutorialStepIndex((current) => Math.max(current - 1, 0));
   };
 
   const handleSectionChange = (nextSection: MenuSection) => {
@@ -329,12 +393,13 @@ export const DashboardPage = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
+                data-onboarding-target={`nav-${item.id}`}
                 onClick={() => handleSectionChange(item.id)}
                 className={`group relative flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
                   item.id === activeSection
                     ? 'border-pink-200 bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-[0_12px_24px_rgba(236,72,153,0.35)]'
                     : 'border-transparent bg-white/60 text-slate-600 hover:border-pink-100 hover:bg-white hover:text-slate-900 hover:shadow-sm'
-                }`}
+                } ${currentTutorialTarget === item.id ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white' : ''}`}
               >
                 <span
                   className={`absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full transition-all ${
@@ -431,12 +496,13 @@ export const DashboardPage = () => {
                   <button
                     key={item.id}
                     type="button"
+                    data-onboarding-target={`nav-${item.id}`}
                     onClick={() => handleSectionChange(item.id)}
                     className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-xs font-semibold transition-colors ${
                       activeSection === item.id
                         ? 'border-pink-200 bg-pink-50 text-pink-700'
                         : 'border-slate-200 bg-slate-50 text-slate-600'
-                    }`}
+                    } ${currentTutorialTarget === item.id ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white' : ''}`}
                   >
                     <item.icon size={18} />
                     <span>{item.label}</span>
@@ -452,13 +518,14 @@ export const DashboardPage = () => {
             {mobilePrimaryNav.slice(0, 2).map((item) => (
               <button
                 key={item.id}
+                data-onboarding-target={`nav-${item.id}`}
                 onClick={() => handleSectionChange(item.id)}
                 aria-label={item.label}
                 className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
                   item.id === activeSection
                     ? 'border-pink-200 bg-gradient-to-b from-pink-50 to-rose-50 text-pink-700'
                     : 'border-transparent text-slate-400'
-                }`}
+                } ${currentTutorialTarget === item.id ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white' : ''}`}
               >
                 <item.icon size={19} strokeWidth={item.id === activeSection ? 2.5 : 2} />
               </button>
@@ -467,13 +534,14 @@ export const DashboardPage = () => {
             {mobileAgendaItem ? (
               <button
                 type="button"
+                data-onboarding-target="nav-agenda"
                 onClick={() => handleSectionChange('agenda')}
                 aria-label={mobileAgendaItem.label}
                 className={`-mt-7 flex h-16 w-full flex-col items-center justify-center rounded-2xl border text-[10px] font-black uppercase tracking-wide shadow-lg transition-all ${
                   activeSection === 'agenda'
                     ? 'border-pink-300 bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-pink-200'
                     : 'border-pink-200 bg-white text-pink-600 shadow-pink-100'
-                }`}
+                } ${currentTutorialTarget === 'agenda' ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white' : ''}`}
               >
                 <mobileAgendaItem.icon size={20} strokeWidth={2.5} />
               </button>
@@ -482,13 +550,14 @@ export const DashboardPage = () => {
             {mobilePrimaryNav.slice(3).map((item) => (
               <button
                 key={item.id}
+                data-onboarding-target={`nav-${item.id}`}
                 onClick={() => handleSectionChange(item.id)}
                 aria-label={item.label}
                 className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
                   item.id === activeSection
                     ? 'border-pink-200 bg-gradient-to-b from-pink-50 to-rose-50 text-pink-700'
                     : 'border-transparent text-slate-400'
-                }`}
+                } ${currentTutorialTarget === item.id ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white' : ''}`}
               >
                 <item.icon size={19} strokeWidth={item.id === activeSection ? 2.5 : 2} />
               </button>
@@ -521,10 +590,14 @@ export const DashboardPage = () => {
       <TutorialFlowModal
         isOpen={tutorialStage !== null}
         stage={tutorialStage ?? 'offer'}
+        steps={tutorialSteps}
+        tutorialStepIndex={tutorialStepIndex}
         isLoading={isTutorialLoading}
         errorMessage={tutorialError}
         onAccept={() => void handleAcceptTutorial()}
         onDecline={() => void handleDeclineTutorial()}
+        onNext={handleNextTutorialStep}
+        onBack={handleBackTutorialStep}
         onComplete={() => void handleCompleteTutorial()}
       />
     </>
