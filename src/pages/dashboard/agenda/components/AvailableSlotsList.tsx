@@ -156,11 +156,11 @@ export const AvailableSlotsList = ({
                       }}
                       aria-label={`Agendamento ${intervalLabel} de ${appointment.clientName || `Cliente ${appointment.clientId}`}`}
                     >
-                      <p className="text-[11px] font-semibold tracking-wide opacity-80">{intervalLabel}</p>
-                      <p className="mt-0.5 truncate text-sm font-bold">
+                      <p className="text-[11px] font-semibold tracking-wide text-white/85">{intervalLabel}</p>
+                      <p className="mt-0.5 truncate text-sm font-bold text-white">
                         {appointment.clientName || `Cliente #${appointment.clientId}`}
                       </p>
-                      <p className="truncate text-xs font-medium opacity-80">
+                      <p className="truncate text-xs font-medium text-white/85">
                         {appointment.procedureName || `Procedimento #${appointment.procedureId}`}
                       </p>
                       <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusVisual.badgeClassName}`}>

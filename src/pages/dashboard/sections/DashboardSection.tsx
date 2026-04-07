@@ -124,6 +124,21 @@ export const DashboardSection = ({ isLoading, error, financialData, onRetry }: D
         { date: 'Sex', value: 0 },
       ];
 
+  const formatRevenueDayLabel = (value: string) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    const weekday = date
+      .toLocaleDateString('pt-BR', { weekday: 'short' })
+      .replace('.', '')
+      .trim();
+    const day = String(date.getDate()).padStart(2, '0');
+    const normalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+    return `${normalizedWeekday} ${day}`;
+  };
+
   const topProcedures: RankingItem[] = summary.topProcedures.length
     ? summary.topProcedures.map((item) => ({ name: item.procedureName, total: item.total }))
     : defaultTopProcedures;
@@ -168,7 +183,7 @@ export const DashboardSection = ({ isLoading, error, financialData, onRetry }: D
               return (
                 <div key={`${item.date}-${index}`}>
                   <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>{item.date}</span>
+                    <span>{formatRevenueDayLabel(item.date)}</span>
                     <span>{formatCurrency(item.value)}</span>
                   </div>
                   <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">

@@ -38,8 +38,8 @@ export const getAppointmentStatusVisual = (
       normalizedStatus: normalized,
       label: statusLabel || 'Agendado',
       cardClassName:
-        'border-slate-200 bg-white text-slate-800 shadow-[0_8px_16px_rgba(15,23,42,0.08)]',
-      badgeClassName: 'border-slate-200 bg-slate-100 text-slate-700',
+        'border border-fuchsia-200 border-l-fuchsia-500 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-rose-600 text-white shadow-[0_12px_24px_rgba(190,24,93,0.35)]',
+      badgeClassName: 'border-white/25 bg-white/15 text-white',
     };
   }
 
@@ -48,8 +48,8 @@ export const getAppointmentStatusVisual = (
       normalizedStatus: normalized,
       label: statusLabel || 'Confirmado',
       cardClassName:
-        'border-sky-200 bg-sky-50 text-sky-900 shadow-[0_10px_18px_rgba(14,116,144,0.16)]',
-      badgeClassName: 'border-sky-200 bg-sky-100 text-sky-700',
+        'border border-sky-200 border-l-sky-500 bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-600 text-white shadow-[0_12px_24px_rgba(2,132,199,0.35)]',
+      badgeClassName: 'border-white/25 bg-white/15 text-white',
     };
   }
 
@@ -58,8 +58,8 @@ export const getAppointmentStatusVisual = (
       normalizedStatus: normalized,
       label: statusLabel || 'Concluido',
       cardClassName:
-        'border-emerald-200 bg-emerald-50 text-emerald-900 shadow-[0_10px_18px_rgba(5,150,105,0.16)]',
-      badgeClassName: 'border-emerald-200 bg-emerald-100 text-emerald-700',
+        'border border-emerald-200 border-l-emerald-500 bg-gradient-to-br from-emerald-500 via-teal-500 to-green-600 text-white shadow-[0_12px_24px_rgba(5,150,105,0.34)]',
+      badgeClassName: 'border-white/25 bg-white/15 text-white',
     };
   }
 
@@ -68,8 +68,8 @@ export const getAppointmentStatusVisual = (
       normalizedStatus: normalized,
       label: statusLabel || 'Cancelado',
       cardClassName:
-        'border-rose-200 bg-rose-50 text-rose-900 shadow-[0_10px_18px_rgba(225,29,72,0.16)]',
-      badgeClassName: 'border-rose-200 bg-rose-100 text-rose-700',
+        'border border-rose-200 border-l-rose-500 bg-gradient-to-br from-rose-500 via-red-500 to-pink-600 text-white shadow-[0_12px_24px_rgba(225,29,72,0.34)]',
+      badgeClassName: 'border-white/25 bg-white/15 text-white',
     };
   }
 
@@ -78,8 +78,8 @@ export const getAppointmentStatusVisual = (
       normalizedStatus: normalized,
       label: statusLabel || 'Nao compareceu',
       cardClassName:
-        'border-amber-200 bg-amber-50 text-amber-900 shadow-[0_10px_18px_rgba(217,119,6,0.18)]',
-      badgeClassName: 'border-amber-200 bg-amber-100 text-amber-700',
+        'border border-amber-200 border-l-amber-500 bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 text-white shadow-[0_12px_24px_rgba(217,119,6,0.34)]',
+      badgeClassName: 'border-white/25 bg-white/15 text-white',
     };
   }
 
@@ -87,8 +87,8 @@ export const getAppointmentStatusVisual = (
     normalizedStatus: normalized,
     label: statusLabel || 'Agendado',
     cardClassName:
-      'border-slate-200 bg-white text-slate-800 shadow-[0_8px_16px_rgba(15,23,42,0.08)]',
-    badgeClassName: 'border-slate-200 bg-slate-100 text-slate-700',
+      'border border-fuchsia-200 border-l-fuchsia-500 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-rose-600 text-white shadow-[0_12px_24px_rgba(190,24,93,0.35)]',
+    badgeClassName: 'border-white/25 bg-white/15 text-white',
   };
 };
 
