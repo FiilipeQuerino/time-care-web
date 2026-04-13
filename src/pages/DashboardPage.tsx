@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FeatureComingSoonModal, NoticeModalType } from '../components/FeatureComingSoonModal';
 import { TutorialFlowModal } from '../components/TutorialFlowModal';
+import { WhatsNewModal } from '../components/WhatsNewModal';
 import { DashboardFinancialData } from '../types/dashboard';
 import { MenuSection } from '../types/navigation';
 import { fetchDashboardFinancial } from '../services/dashboardService';
@@ -16,10 +17,20 @@ import { ClientsSection } from './dashboard/sections/ClientsSection';
 import { ProceduresSection } from './dashboard/sections/ProceduresSection';
 import { ReportsSection } from './dashboard/sections/ReportsSection';
 import { AgendaSection } from './dashboard/sections/AgendaSection';
+import { ConfigSection } from './dashboard/sections/ConfigSection';
 import { TutorialStep } from '../components/TutorialFlowModal';
 import { DashboardDesktopSidebar } from '../features/dashboard/components/DashboardDesktopSidebar';
 import { DashboardHeader } from '../features/dashboard/components/DashboardHeader';
 import { DashboardMobileNavigation } from '../features/dashboard/components/DashboardMobileNavigation';
+import { useWhatsNew } from '../hooks/useWhatsNew';
+import { decideEntryFlow } from '../types/entryFlow';
+import { OnboardingLoginFlags } from '../types/auth';
+import { WhatsNewEntry } from '../types/whatsNew';
+
+const LOCAL_TUTORIAL_TEST_MODE = false;
+const FORCE_TUTORIAL_ON_ENTRY = false;
+const PERSIST_TUTORIAL_COMPLETION = true;
+const FORCE_WHATS_NEW_ALWAYS = false;
 
 export const DashboardPage = () => {
   const { user, logout, token, onboarding, onboardingResolved, setOnboardingFlags } = useAuth();
@@ -50,52 +61,72 @@ export const DashboardPage = () => {
   const [tutorialStepIndex, setTutorialStepIndex] = useState(0);
   const [isTutorialLoading, setIsTutorialLoading] = useState(false);
   const [tutorialError, setTutorialError] = useState<string | null>(null);
+  const [whatsNewModalEntry, setWhatsNewModalEntry] = useState<WhatsNewEntry | null>(null);
+  const [isWhatsNewModalOpen, setIsWhatsNewModalOpen] = useState(false);
+  const [pendingWhatsNewAfterInitialTutorial, setPendingWhatsNewAfterInitialTutorial] = useState<WhatsNewEntry | null>(null);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
+  const entryFlowResolvedRef = useRef(false);
+  const forcedTutorialShownRef = useRef(false);
+  const localTutorialBootstrapRef = useRef(false);
+  const forcedWhatsNewShownRef = useRef(false);
 
   const notifications: Array<{ id: string; title: string; detail: string; time: string }> = [];
   const tutorialSteps: TutorialStep[] = [
     {
-      id: 'dashboard-overview',
-      section: 'dashboard',
-      title: 'Comece por aqui',
-      description: 'Aqui voce acompanha rapidamente os indicadores principais.',
-      tip: 'Receita e agendamentos ficam visiveis neste bloco inicial.',
-      targetElement: '[data-onboarding-target="dashboard-overview"]',
-      placement: 'bottom',
+      id: 'nav-clients',
+      section: 'clientes',
+      title: 'Clientes',
+      description: 'Cadastre e acompanhe seus clientes em um so lugar.',
+      tip: 'Comece por aqui para manter sua base organizada.',
+      targetElement: '[data-onboarding-target="nav-clientes"]',
+      placement: 'top',
       compact: true,
       connector: 'none',
       highlightPadding: 6,
     },
     {
-      id: 'nav-clients',
-      section: 'clientes',
-      title: 'Gestao de clientes',
-      description: 'Cadastre, pesquise e mantenha os dados da sua base de clientes.',
-      tip: 'Comece adicionando seus clientes mais recorrentes.',
-      targetElement: '[data-onboarding-target="nav-clientes"]',
-      placement: 'right',
-    },
-    {
       id: 'nav-procedures',
       section: 'procedimentos',
       title: 'Procedimentos',
-      description: 'Organize os servicos com preco, duracao e categoria.',
-      tip: 'Defina os procedimentos principais para acelerar os agendamentos.',
+      description: 'Organize seus servicos com preco, duracao e categoria.',
+      tip: 'Mantenha os servicos prontos para agilizar o atendimento.',
       targetElement: '[data-onboarding-target="nav-procedimentos"]',
-      placement: 'right',
+      placement: 'top',
+      compact: true,
+      connector: 'none',
+      highlightPadding: 6,
     },
     {
       id: 'nav-agenda',
       section: 'agenda',
       title: 'Agenda',
-      description: 'Gerencie horarios e acompanhe os atendimentos do dia.',
-      tip: 'Clique nos horarios livres para criar agendamentos rapidamente.',
+      description: 'Gerencie seus horarios, atendimentos e bloqueios de agenda.',
+      tip: 'Acompanhe o dia e ajuste os horarios com rapidez.',
       targetElement: '[data-onboarding-target="nav-agenda"]',
-      placement: 'right',
+      placement: 'top',
+      compact: true,
+      connector: 'none',
+      highlightPadding: 6,
+    },
+    {
+      id: 'nav-reports',
+      section: 'relatorios',
+      title: 'Relatorios',
+      description: 'Acompanhe dados financeiros e de desempenho da clinica.',
+      tip: 'Veja indicadores para tomar decisoes com mais clareza.',
+      targetElement: '[data-onboarding-target="nav-relatorios"]',
+      placement: 'top',
+      compact: true,
+      connector: 'none',
+      highlightPadding: 6,
     },
   ];
   const currentTutorialTarget =
     tutorialStage === 'tutorial' ? tutorialSteps[tutorialStepIndex]?.section ?? null : null;
+  const whatsNew = useWhatsNew({
+    token: LOCAL_TUTORIAL_TEST_MODE ? null : token,
+    forceAlwaysShow: FORCE_WHATS_NEW_ALWAYS,
+  });
 
   const loadFinancialData = useCallback(async () => {
     if (!token) return;
@@ -133,6 +164,64 @@ export const DashboardPage = () => {
   }, [activeSection]);
 
   useEffect(() => {
+    entryFlowResolvedRef.current = false;
+    forcedTutorialShownRef.current = false;
+    localTutorialBootstrapRef.current = false;
+    forcedWhatsNewShownRef.current = false;
+    setWhatsNewModalEntry(null);
+    setIsWhatsNewModalOpen(false);
+    setPendingWhatsNewAfterInitialTutorial(null);
+  }, [token]);
+
+  useEffect(() => {
+    if (!FORCE_WHATS_NEW_ALWAYS) return;
+    if (!token || !whatsNew.hasLoaded || whatsNew.isChecking) return;
+    if (forcedWhatsNewShownRef.current) return;
+    if (tutorialStage !== null) {
+      setTutorialStage(null);
+    }
+
+    const entry = whatsNew.data?.whatsNew ?? {
+      version: whatsNew.data?.currentVersion || '1.2.0',
+      title: 'Atualizacao em teste',
+      type: 'feature',
+      requiresTutorial: false,
+      items: [
+        'Modo de teste ativo para novidades da versao',
+        'Este conteudo aparece mesmo sem release pendente no backend',
+        'Desative FORCE_WHATS_NEW_ALWAYS quando finalizar os testes',
+      ],
+    };
+
+    forcedWhatsNewShownRef.current = true;
+    setWhatsNewModalEntry(entry);
+    setIsWhatsNewModalOpen(true);
+  }, [token, tutorialStage, whatsNew.data, whatsNew.hasLoaded, whatsNew.isChecking]);
+
+  useEffect(() => {
+    if (!FORCE_TUTORIAL_ON_ENTRY) return;
+    if (!token || (!onboardingResolved && !LOCAL_TUTORIAL_TEST_MODE)) return;
+    if (forcedTutorialShownRef.current) return;
+    forcedTutorialShownRef.current = true;
+    setTutorialStepIndex(0);
+    setTutorialStage('offer');
+  }, [onboardingResolved, token]);
+
+  useEffect(() => {
+    if (LOCAL_TUTORIAL_TEST_MODE) {
+      if (localTutorialBootstrapRef.current) return;
+      localTutorialBootstrapRef.current = true;
+      setOnboardingFlags(
+        {
+          isFirstLogin: true,
+          shouldOfferTutorial: true,
+          tutorialVersion: 'v1',
+        },
+        true,
+      );
+      return;
+    }
+
     if (!token) return;
     if (onboardingResolved && onboarding) return;
 
@@ -164,17 +253,54 @@ export const DashboardPage = () => {
   }, [onboarding, onboardingResolved, setOnboardingFlags, token]);
 
   useEffect(() => {
-    if (!onboardingResolved) return;
-    if (tutorialStage !== null) return;
+    if (FORCE_TUTORIAL_ON_ENTRY) return;
+    if (FORCE_WHATS_NEW_ALWAYS) return;
+    if (!token || !onboardingResolved || !whatsNew.hasLoaded || whatsNew.isChecking) return;
+    if (entryFlowResolvedRef.current) return;
 
-    if (onboarding?.shouldOfferTutorial) {
+    const loginData: OnboardingLoginFlags = onboarding ?? {
+      isFirstLogin: false,
+      shouldOfferTutorial: false,
+      tutorialVersion: 'v1',
+    };
+    const whatsNewData = whatsNew.data ?? {
+      currentVersion: '',
+      hasNewVersion: false,
+      shouldOfferUpdateTutorial: false,
+      whatsNew: null,
+    };
+
+    const decision = decideEntryFlow(loginData, whatsNewData);
+    entryFlowResolvedRef.current = true;
+
+    if (decision.flow === 'INITIAL_TUTORIAL') {
       setTutorialStage('offer');
       setTutorialStepIndex(0);
+      if (decision.includeWhatsNew && whatsNewData.whatsNew) {
+        setPendingWhatsNewAfterInitialTutorial(whatsNewData.whatsNew);
+      }
       return;
     }
 
-    setTutorialStage(null);
-  }, [onboarding, onboardingResolved, tutorialStage]);
+    if (decision.flow === 'WHATS_NEW_TUTORIAL' && whatsNewData.whatsNew) {
+      setWhatsNewModalEntry(whatsNewData.whatsNew);
+      setIsWhatsNewModalOpen(true);
+      return;
+    }
+
+    if (decision.flow === 'WHATS_NEW_MODAL' && whatsNewData.whatsNew) {
+      setWhatsNewModalEntry(whatsNewData.whatsNew);
+      setIsWhatsNewModalOpen(true);
+    }
+  }, [onboarding, onboardingResolved, token, whatsNew.data, whatsNew.hasLoaded, whatsNew.isChecking]);
+
+  useEffect(() => {
+    if (tutorialStage !== null) return;
+    if (!pendingWhatsNewAfterInitialTutorial) return;
+    setWhatsNewModalEntry(pendingWhatsNewAfterInitialTutorial);
+    setIsWhatsNewModalOpen(true);
+    setPendingWhatsNewAfterInitialTutorial(null);
+  }, [pendingWhatsNewAfterInitialTutorial, tutorialStage]);
 
   useEffect(() => {
     if (tutorialStage !== 'tutorial') return;
@@ -227,6 +353,12 @@ export const DashboardPage = () => {
   };
 
   const handleDeclineTutorial = async () => {
+    if (LOCAL_TUTORIAL_TEST_MODE) {
+      setTutorialError(null);
+      setTutorialStage(null);
+      return;
+    }
+
     if (!token || !onboarding) return;
 
     setIsTutorialLoading(true);
@@ -256,6 +388,13 @@ export const DashboardPage = () => {
   };
 
   const handleAcceptTutorial = async () => {
+    if (LOCAL_TUTORIAL_TEST_MODE) {
+      setTutorialError(null);
+      setTutorialStepIndex(0);
+      setTutorialStage('tutorial');
+      return;
+    }
+
     if (!token || !onboarding) return;
 
     setIsTutorialLoading(true);
@@ -286,6 +425,18 @@ export const DashboardPage = () => {
   };
 
   const handleCompleteTutorial = async () => {
+    if (LOCAL_TUTORIAL_TEST_MODE) {
+      setTutorialError(null);
+      setTutorialStepIndex(0);
+      setTutorialStage('offer');
+      return;
+    }
+
+    if (!PERSIST_TUTORIAL_COMPLETION) {
+      setTutorialStage(null);
+      return;
+    }
+
     if (!token || !onboarding) return;
 
     setIsTutorialLoading(true);
@@ -322,8 +473,8 @@ export const DashboardPage = () => {
   };
 
   const handleSectionChange = (nextSection: MenuSection) => {
-    if (nextSection === 'estoque' || nextSection === 'config') {
-      const label = nextSection === 'estoque' ? 'Estoque' : 'Configuracoes';
+    if (nextSection === 'estoque') {
+      const label = 'Estoque';
       setNoticeModal({
         isOpen: true,
         type: 'coming-soon',
@@ -337,6 +488,18 @@ export const DashboardPage = () => {
     }
 
     setActiveSection(nextSection);
+  };
+
+  const handleCloseWhatsNew = async () => {
+    if (!whatsNewModalEntry?.version) {
+      setIsWhatsNewModalOpen(false);
+      return;
+    }
+    if (!FORCE_WHATS_NEW_ALWAYS) {
+      await whatsNew.markSeen(whatsNewModalEntry.version);
+    }
+    setIsWhatsNewModalOpen(false);
+    setWhatsNewModalEntry(null);
   };
 
   const getNavItem = useCallback(
@@ -381,6 +544,7 @@ export const DashboardPage = () => {
     if (activeSection === 'relatorios') {
       return <ReportsSection />;
     }
+    if (activeSection === 'config') return <ConfigSection />;
 
     return null;
   };
@@ -449,6 +613,13 @@ export const DashboardPage = () => {
         onNext={handleNextTutorialStep}
         onBack={handleBackTutorialStep}
         onComplete={() => void handleCompleteTutorial()}
+      />
+
+      <WhatsNewModal
+        isOpen={isWhatsNewModalOpen && tutorialStage === null}
+        entry={whatsNewModalEntry}
+        isLoading={whatsNew.isMarkingSeen}
+        onAcknowledge={() => void handleCloseWhatsNew()}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import { ApiResponse } from '../types/api';
-import { UpdateUserSettingsPayload, UserSettings } from '../types/profile';
+import { ProfileSystemInfo, UpdateUserSettingsPayload, UserSettings } from '../types/profile';
 import { apiRequest } from './api';
 
 interface RawApiResponse<TData> extends Partial<ApiResponse<TData>> {
@@ -58,6 +58,9 @@ const normalizeSettings = (raw: unknown): UserSettings => {
     criticalStockAlertsEnabled: Boolean(
       getValue(source, 'criticalStockAlertsEnabled', 'CriticalStockAlertsEnabled') ?? true,
     ),
+    appointmentClosureMode: Number(
+      getValue(source, 'appointmentClosureMode', 'AppointmentClosureMode') ?? 1,
+    ) as UserSettings['appointmentClosureMode'],
     preferredNotificationChannel: Number(
       getValue(source, 'preferredNotificationChannel', 'PreferredNotificationChannel') ?? 2,
     ) as UserSettings['preferredNotificationChannel'],
@@ -69,6 +72,14 @@ const normalizeSettings = (raw: unknown): UserSettings => {
   };
 };
 
+const normalizeSystemInfo = (raw: unknown): ProfileSystemInfo => {
+  const source = (raw ?? {}) as Record<string, unknown>;
+  return {
+    currentVersion: String(getValue(source, 'currentVersion', 'CurrentVersion') ?? ''),
+    lastUpdatedAt: String(getValue(source, 'lastUpdatedAt', 'LastUpdatedAt') ?? ''),
+  };
+};
+
 const toPayload = (payload: UpdateUserSettingsPayload) => ({
   email: payload.email,
   phone: payload.phone,
@@ -76,6 +87,7 @@ const toPayload = (payload: UpdateUserSettingsPayload) => ({
   allowPushNotifications: payload.allowPushNotifications,
   allowWhatsAppNotifications: payload.allowWhatsAppNotifications,
   criticalStockAlertsEnabled: payload.criticalStockAlertsEnabled,
+  appointmentClosureMode: payload.appointmentClosureMode,
   preferredNotificationChannel: payload.preferredNotificationChannel,
   twoFactorEnabled: payload.twoFactorEnabled,
   twoFactorMethod: payload.twoFactorMethod,
@@ -101,4 +113,12 @@ export async function updateUserSettings(
     body: JSON.stringify(toPayload(payload)),
   });
   return normalizeSettings(unwrap<unknown>(response, 'Nao foi possivel salvar configuracoes.'));
+}
+
+export async function fetchProfileSystemInfo(token: string): Promise<ProfileSystemInfo> {
+  const response = await apiRequest<RawApiResponse<unknown> | unknown>('/api/Profile/system-info', {
+    method: 'GET',
+    token,
+  });
+  return normalizeSystemInfo(unwrap<unknown>(response, 'Nao foi possivel carregar informacoes de versao.'));
 }

@@ -1,5 +1,6 @@
 export type NotificationChannel = 1 | 2 | 3;
 export type TwoFactorMethod = 1 | 2 | 3 | 4;
+export type AppointmentClosureMode = 1 | 2;
 
 export interface UserSettings {
   userId: string;
@@ -9,6 +10,7 @@ export interface UserSettings {
   allowPushNotifications: boolean;
   allowWhatsAppNotifications: boolean;
   criticalStockAlertsEnabled: boolean;
+  appointmentClosureMode: AppointmentClosureMode;
   preferredNotificationChannel: NotificationChannel;
   twoFactorEnabled: boolean;
   twoFactorMethod: TwoFactorMethod;
@@ -24,9 +26,15 @@ export interface UpdateUserSettingsPayload {
   allowPushNotifications: boolean;
   allowWhatsAppNotifications: boolean;
   criticalStockAlertsEnabled: boolean;
+  appointmentClosureMode: AppointmentClosureMode;
   preferredNotificationChannel: NotificationChannel;
   twoFactorEnabled: boolean;
   twoFactorMethod: TwoFactorMethod;
   language: string;
   timeZone: string;
+}
+
+export interface ProfileSystemInfo {
+  currentVersion: string;
+  lastUpdatedAt: string;
 }

@@ -76,6 +76,7 @@ export const TutorialFlowModal = ({
   const isCompactStep = Boolean(currentStep?.compact);
   const connectorMode = currentStep?.connector ?? 'line';
   const isLastStep = tutorialStepIndex >= steps.length - 1;
+  const isMobileTour = stage === 'tutorial' && isMobileViewport;
   const spotlightPadding = currentStep?.highlightPadding ?? 10;
   const spotlightRect = targetRect
     ? {
@@ -130,6 +131,23 @@ export const TutorialFlowModal = ({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
+    if (isMobileTour) {
+      const navSafeBottom = 152;
+      const safeWidth = cardSize.width || Math.min(viewportWidth * 0.86, 330);
+      const safeHeight = cardSize.height || 250;
+      const targetCenterX = targetRect ? targetRect.left + targetRect.width / 2 : viewportWidth / 2;
+      const preferredY = targetRect
+        ? targetRect.top - safeHeight - 22
+        : viewportHeight - safeHeight - navSafeBottom;
+
+      setCardPosition({
+        x: clamp(targetCenterX - safeWidth / 2, 10, viewportWidth - safeWidth - 10),
+        y: clamp(preferredY, 14, viewportHeight - safeHeight - navSafeBottom),
+      });
+      setResolvedPlacement('top');
+      return;
+    }
+
     if (!targetRect) {
       setCardPosition({
         x: (viewportWidth - cardSize.width) / 2,
@@ -178,7 +196,7 @@ export const TutorialFlowModal = ({
 
     setResolvedPlacement(nextPlacement);
     setCardPosition(nextPosition);
-  }, [cardSize.height, cardSize.width, currentStep?.placement, isCompactStep, isMobileViewport, isOpen, stage, targetRect]);
+  }, [cardSize.height, cardSize.width, currentStep?.placement, isCompactStep, isMobileTour, isMobileViewport, isOpen, stage, targetRect]);
 
   const shouldShowConnector = useMemo(() => {
     if (!targetRect || !cardPosition) return false;
@@ -214,6 +232,21 @@ export const TutorialFlowModal = ({
 
     return { start, end: { x: targetCenterX, y: targetCenterY } };
   }, [cardPosition, cardSize.height, cardSize.width, resolvedPlacement, shouldShowConnector, targetRect]);
+
+  const mobilePointer = useMemo(() => {
+    if (!isMobileTour || !targetRect || !cardPosition) return null;
+
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    const startX = clamp(targetCenterX, cardPosition.x + 22, cardPosition.x + cardSize.width - 22);
+    const startY = cardPosition.y + cardSize.height - 2;
+    const endX = targetCenterX;
+    const endY = targetRect.top - 8;
+
+    return {
+      start: { x: startX, y: startY },
+      end: { x: endX, y: endY },
+    };
+  }, [cardPosition, cardSize.height, cardSize.width, isMobileTour, targetRect]);
 
   if (!isOpen) return null;
 
@@ -312,6 +345,24 @@ export const TutorialFlowModal = ({
         </svg>
       ) : null}
 
+      {mobilePointer ? (
+        <svg className="pointer-events-none fixed inset-0 h-full w-full">
+          <line
+            x1={mobilePointer.start.x}
+            y1={mobilePointer.start.y}
+            x2={mobilePointer.end.x}
+            y2={mobilePointer.end.y}
+            stroke="rgba(244,114,182,0.95)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <polygon
+            points={`${mobilePointer.end.x},${mobilePointer.end.y} ${mobilePointer.end.x - 6},${mobilePointer.end.y + 10} ${mobilePointer.end.x + 6},${mobilePointer.end.y + 10}`}
+            fill="rgba(244,114,182,0.98)"
+          />
+        </svg>
+      ) : null}
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep?.id ?? 'tutorial'}
@@ -320,7 +371,7 @@ export const TutorialFlowModal = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.99 }}
           transition={{ duration: 0.2 }}
-          className={`fixed rounded-3xl border border-slate-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.24)] ${isCompactStep ? 'w-[min(92vw,380px)] p-4' : 'w-[min(92vw,430px)] p-5'}`}
+          className={`fixed z-[160] rounded-3xl border border-slate-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.24)] ${isMobileTour ? 'w-[min(86vw,330px)] p-3.5' : isCompactStep ? 'w-[min(92vw,380px)] p-4' : 'w-[min(92vw,430px)] p-5'}`}
           style={{
             left: cardPosition?.x ?? (window.innerWidth - Math.min(window.innerWidth * 0.92, isCompactStep ? 380 : 430)) / 2,
             top: cardPosition?.y ?? (window.innerHeight - 320) / 2,
@@ -361,23 +412,27 @@ export const TutorialFlowModal = ({
             </div>
           ) : null}
 
-          <div className={`${isCompactStep ? 'mt-3' : 'mt-4'} flex justify-between gap-2`}>
+          <div className={`${isMobileTour ? 'mt-2.5' : isCompactStep ? 'mt-3' : 'mt-4'} flex justify-between gap-2`}>
             <Button
               variant="outline"
               onClick={onBack}
               disabled={isLoading || tutorialStepIndex === 0}
-              className="h-10 border-slate-200 text-slate-600"
+              className={isMobileTour ? 'h-11 px-3 border-slate-200 text-slate-600' : 'h-10 border-slate-200 text-slate-600'}
             >
               Voltar
             </Button>
             {isLastStep ? (
-              <Button onClick={onComplete} isLoading={isLoading} className="h-10 bg-pink-600 text-white hover:bg-pink-700">
-                Concluir tutorial
+              <Button onClick={onComplete} isLoading={isLoading} className={isMobileTour ? 'h-11 flex-1 bg-pink-600 text-white hover:bg-pink-700' : 'h-10 bg-pink-600 text-white hover:bg-pink-700'}>
+                Concluir
               </Button>
             ) : (
-              <Button onClick={onNext} disabled={isLoading} className="h-10 bg-pink-600 text-white hover:bg-pink-700" icon={ArrowRight}>
-                Proximo passo
-              </Button>
+              <Button
+                onClick={onNext}
+                disabled={isLoading}
+                className={isMobileTour ? 'h-11 min-w-12 bg-pink-600 text-white hover:bg-pink-700' : 'h-10 min-w-11 bg-pink-600 text-white hover:bg-pink-700'}
+                icon={ArrowRight}
+                aria-label="Proximo passo"
+              />
             )}
           </div>
         </motion.div>

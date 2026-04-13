@@ -24,9 +24,12 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const variants = {
-    primary: 'bg-pink-600 text-white hover:bg-pink-700 shadow-pink-200',
-    secondary: 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-200',
-    outline: 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50',
+    primary:
+      'bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-500 text-white shadow-[0_12px_28px_rgba(219,39,119,0.32)] hover:brightness-105',
+    secondary:
+      'bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 text-white shadow-[0_12px_28px_rgba(3,105,161,0.30)] hover:brightness-105',
+    outline:
+      'border-2 border-slate-200 bg-white text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.08)] hover:border-pink-200 hover:bg-pink-50/50',
     ghost: 'text-slate-600 hover:bg-slate-100',
   };
 
@@ -39,6 +42,7 @@ export const Button = ({
 
   return (
     <motion.button
+      whileHover={{ y: -1 }}
       whileTap={{ scale: 0.97 }}
       className={`
         relative flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200

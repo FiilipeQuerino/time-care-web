@@ -16,7 +16,7 @@ interface ProceduresSectionProps {
 
 export const ProceduresSection = ({ refreshTick = 0 }: ProceduresSectionProps) => {
   const { token } = useAuth();
-  const { showToast } = useToast();
+  const { showSuccessToast, showWarningToast, showErrorToast } = useToast();
 
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +42,7 @@ export const ProceduresSection = ({ refreshTick = 0 }: ProceduresSectionProps) =
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : 'Erro ao carregar procedimentos.';
       setError(message);
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +111,7 @@ export const ProceduresSection = ({ refreshTick = 0 }: ProceduresSectionProps) =
     const estimatedDurationInMinutes = Number(procedureDuration);
 
     if (!procedureName.trim() || suggestedPrice <= 0 || estimatedDurationInMinutes <= 0) {
-      showToast('Preencha nome, preco e duracao com valores validos.', 'info');
+      showWarningToast('Preencha nome, preco e duracao com valores validos.');
       return;
     }
 
@@ -130,7 +130,7 @@ export const ProceduresSection = ({ refreshTick = 0 }: ProceduresSectionProps) =
             procedure.procedureId === editingProcedure.procedureId ? { ...procedure, ...updated } : procedure,
           ),
         );
-        showToast('Procedimento atualizado com sucesso.', 'success');
+        showSuccessToast('Procedimento atualizado com sucesso.');
       } else {
         const created = await createProcedure(token, {
           name: procedureName.trim(),
@@ -140,13 +140,13 @@ export const ProceduresSection = ({ refreshTick = 0 }: ProceduresSectionProps) =
         });
 
         setProcedures((current) => [created, ...current]);
-        showToast('Procedimento cadastrado com sucesso.', 'success');
+        showSuccessToast('Procedimento cadastrado com sucesso.');
       }
 
       closeProcedureModal();
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : 'Nao foi possivel salvar procedimento.';
-      showToast(message, 'error');
+      showErrorToast(message);
       setIsSaving(false);
     }
   };

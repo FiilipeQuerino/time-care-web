@@ -17,7 +17,7 @@ interface ClientsSectionProps {
 
 export const ClientsSection = ({ refreshTick = 0 }: ClientsSectionProps) => {
   const { token } = useAuth();
-  const { showToast } = useToast();
+  const { showSuccessToast, showErrorToast } = useToast();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +47,7 @@ export const ClientsSection = ({ refreshTick = 0 }: ClientsSectionProps) => {
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : 'Erro ao carregar clientes.';
       setError(message);
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +156,7 @@ export const ClientsSection = ({ refreshTick = 0 }: ClientsSectionProps) => {
         setClients((current) =>
           current.map((client) => (client.clientId === editingClient.clientId ? { ...client, ...updated } : client)),
         );
-        showToast('Cliente atualizado com sucesso.', 'success');
+        showSuccessToast('Cliente atualizado com sucesso.');
       } else {
         const created = await createClient(token, {
           name: editName,
@@ -166,13 +166,13 @@ export const ClientsSection = ({ refreshTick = 0 }: ClientsSectionProps) => {
         });
 
         setClients((current) => [created, ...current]);
-        showToast('Cliente cadastrado com sucesso.', 'success');
+        showSuccessToast('Cliente cadastrado com sucesso.');
       }
 
       closeClientForm();
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : 'Nao foi possivel salvar o cliente.';
-      showToast(message, 'error');
+      showErrorToast(message);
       setIsSavingClient(false);
     }
   };
@@ -187,10 +187,10 @@ export const ClientsSection = ({ refreshTick = 0 }: ClientsSectionProps) => {
       setClients((current) =>
         current.map((item) => (item.clientId === client.clientId ? { ...item, ...updated } : item)),
       );
-      showToast(`Cliente ${updated.isActive ? 'ativado' : 'inativado'} com sucesso.`, 'success');
+      showSuccessToast(`Cliente ${updated.isActive ? 'ativado' : 'inativado'} com sucesso.`);
     } catch (updateError) {
       const message = updateError instanceof Error ? updateError.message : 'Nao foi possivel alterar status do cliente.';
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setStatusLoadingId(null);
     }

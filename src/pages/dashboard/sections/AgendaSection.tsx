@@ -67,7 +67,7 @@ const toBlockPayload = (date: string, startTime: string, endTime: string, reason
 
 export const AgendaSection = () => {
   const { token } = useAuth();
-  const { showToast } = useToast();
+  const { showSuccessToast, showWarningToast, showErrorToast } = useToast();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [procedures, setProcedures] = useState<Procedure[]>([]);
@@ -144,28 +144,28 @@ export const AgendaSection = () => {
         setProcedures(proceduresResponse);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Erro ao carregar dados da agenda.';
-        showToast(message, 'error');
+        showErrorToast(message);
       }
     };
 
     void loadBaseData();
-  }, [showToast, token]);
+  }, [showErrorToast, token]);
 
   useEffect(() => {
     void loadDay(selectedDateValue).catch((error) => {
       const message = error instanceof Error ? error.message : 'Erro ao carregar agenda do dia.';
-      showToast(message, 'error');
+      showErrorToast(message);
     });
-  }, [loadDay, selectedDateValue, showToast]);
+  }, [loadDay, selectedDateValue, showErrorToast]);
 
   useEffect(() => {
     const { startDate, endDate } = getCurrentMonthRange(monthValue);
 
     void loadRange(startDate, endDate).catch((error) => {
       const message = error instanceof Error ? error.message : 'Erro ao carregar resumo mensal.';
-      showToast(message, 'error');
+      showErrorToast(message);
     });
-  }, [loadRange, monthValue, showToast]);
+  }, [loadRange, monthValue, showErrorToast]);
 
   useEffect(() => {
     if (!createProcedureId) {
@@ -175,9 +175,9 @@ export const AgendaSection = () => {
 
     void loadSlots(selectedDateValue, createProcedureId).catch((error) => {
       const message = error instanceof Error ? error.message : 'Erro ao carregar slots disponiveis.';
-      showToast(message, 'error');
+      showErrorToast(message);
     });
-  }, [createProcedureId, loadSlots, selectedDateValue, showToast]);
+  }, [createProcedureId, loadSlots, selectedDateValue, showErrorToast]);
 
   const refreshCurrentMonth = async () => {
     const { startDate, endDate } = getCurrentMonthRange(monthValue);
@@ -272,13 +272,13 @@ export const AgendaSection = () => {
 
   const handleCreateAppointment = async () => {
     if (!createClientId || !createProcedureId || !selectedSlot) {
-      showToast('Selecione cliente, procedimento e horario.', 'info');
+      showWarningToast('Selecione cliente, procedimento e horario.');
       return;
     }
 
     const slotStillAvailable = slots.some((slot) => slot.time === selectedSlot && slot.isAvailable);
     if (!slotStillAvailable) {
-      showToast('Horario indisponivel para este procedimento.', 'info');
+      showWarningToast('Horario indisponivel para este procedimento.');
       return;
     }
 
@@ -292,7 +292,7 @@ export const AgendaSection = () => {
     try {
       await create(payload);
       resetCreateFlow();
-      showToast('Agendamento criado com sucesso.', 'success');
+      showSuccessToast('Agendamento criado com sucesso.');
       await Promise.all([
         loadDay(selectedDateValue),
         loadSlots(selectedDateValue, createProcedureId),
@@ -300,18 +300,18 @@ export const AgendaSection = () => {
       ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel criar o agendamento.';
-      showToast(message, 'error');
+      showErrorToast(message);
     }
   };
 
   const handleSaveBlock = async () => {
     if (!blockDate || (!blockIsAllDay && (!blockStartTime || !blockEndTime))) {
-      showToast('Preencha os dados do bloqueio.', 'info');
+      showWarningToast('Preencha os dados do bloqueio.');
       return;
     }
 
     if (!blockIsAllDay && blockEndTime <= blockStartTime) {
-      showToast('Horario de fim deve ser maior que o inicio.', 'info');
+      showWarningToast('Horario de fim deve ser maior que o inicio.');
       return;
     }
 
@@ -321,11 +321,11 @@ export const AgendaSection = () => {
       setIsSavingBlock(true);
       if (blockMode === 'create') {
         await createBlock(payload);
-        showToast('Bloqueio criado com sucesso.', 'success');
+        showSuccessToast('Bloqueio criado com sucesso.');
       } else if (selectedBlock) {
         const updatePayload: UpdateScheduleBlockPayload = payload;
         await updateBlock(selectedBlock.scheduleBlockId, updatePayload);
-        showToast('Bloqueio atualizado com sucesso.', 'success');
+        showSuccessToast('Bloqueio atualizado com sucesso.');
       }
 
       await Promise.all([
@@ -336,7 +336,7 @@ export const AgendaSection = () => {
       closeBlockSheet();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel salvar o bloqueio.';
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsSavingBlock(false);
     }
@@ -348,7 +348,7 @@ export const AgendaSection = () => {
     try {
       setIsDeletingBlock(true);
       await removeBlock(selectedBlock.scheduleBlockId);
-      showToast('Bloqueio removido com sucesso.', 'success');
+      showSuccessToast('Bloqueio removido com sucesso.');
 
       await Promise.all([
         loadDay(selectedDateValue),
@@ -358,7 +358,7 @@ export const AgendaSection = () => {
       closeBlockSheet();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel remover o bloqueio.';
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsDeletingBlock(false);
     }
@@ -383,7 +383,7 @@ export const AgendaSection = () => {
 
   const handleSaveAppointment = async () => {
     if (!selectedAppointment || !editClientId || !editProcedureId || !editDate || !editStartTime) {
-      showToast('Preencha cliente, procedimento, data e horario.', 'info');
+      showWarningToast('Preencha cliente, procedimento, data e horario.');
       return;
     }
 
@@ -402,7 +402,7 @@ export const AgendaSection = () => {
         await changeStatus(selectedAppointment.appointmentId, editStatus);
       }
 
-      showToast('Agendamento atualizado com sucesso.', 'success');
+      showSuccessToast('Agendamento atualizado com sucesso.');
 
       await loadDay(selectedDateValue);
       await refreshCurrentMonth();
@@ -414,7 +414,7 @@ export const AgendaSection = () => {
       closeAppointmentDetails();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel atualizar o agendamento.';
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsSavingDetails(false);
     }
@@ -426,7 +426,7 @@ export const AgendaSection = () => {
     try {
       setIsDeletingDetails(true);
       await remove(selectedAppointment.appointmentId);
-      showToast('Agendamento excluido com sucesso.', 'success');
+      showSuccessToast('Agendamento excluido com sucesso.');
 
       await Promise.all([
         loadDay(selectedDateValue),
@@ -439,7 +439,7 @@ export const AgendaSection = () => {
       closeAppointmentDetails();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel excluir o agendamento.';
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsDeletingDetails(false);
     }

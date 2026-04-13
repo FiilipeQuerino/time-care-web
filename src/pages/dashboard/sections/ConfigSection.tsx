@@ -1,30 +1,34 @@
-import { useEffect, useState } from 'react';
-import { BellRing, LockKeyhole, Save, ShieldCheck, UserCog } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { BellRing, ChevronDown, CircleHelp, Save, ShieldCheck, UserCog } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../context/ToastContext';
-import { fetchUserSettings, updateUserSettings } from '../../../services/profileService';
-import { NotificationChannel, TwoFactorMethod, UserSettings } from '../../../types/profile';
+import { fetchProfileSystemInfo, fetchUserSettings, updateUserSettings } from '../../../services/profileService';
+import { AppointmentClosureMode, NotificationChannel, ProfileSystemInfo, UserSettings } from '../../../types/profile';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 
-const channelLabels: Record<NotificationChannel, string> = {
-  1: 'E-mail',
-  2: 'Push',
-  3: 'WhatsApp',
+const appointmentClosureModeLabels: Record<AppointmentClosureMode, string> = {
+  1: 'Automatico',
+  2: 'Manual',
 };
 
-const twoFactorLabels: Record<TwoFactorMethod, string> = {
-  1: 'Nenhum',
-  2: 'App autenticador',
-  3: 'SMS',
-  4: 'E-mail',
+const getPreferredChannelFromFlags = (
+  allowEmailNotifications: boolean,
+  allowPushNotifications: boolean,
+  allowWhatsAppNotifications: boolean,
+): NotificationChannel | null => {
+  if (allowPushNotifications) return 2;
+  if (allowEmailNotifications) return 1;
+  if (allowWhatsAppNotifications) return 3;
+  return null;
 };
 
 export const ConfigSection = () => {
   const { token } = useAuth();
-  const { showToast } = useToast();
+  const { showSuccessToast, showWarningToast, showErrorToast } = useToast();
 
   const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [systemInfo, setSystemInfo] = useState<ProfileSystemInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,56 +38,74 @@ export const ConfigSection = () => {
   const [allowPushNotifications, setAllowPushNotifications] = useState(true);
   const [allowWhatsAppNotifications, setAllowWhatsAppNotifications] = useState(false);
   const [criticalStockAlertsEnabled, setCriticalStockAlertsEnabled] = useState(true);
-  const [preferredNotificationChannel, setPreferredNotificationChannel] = useState<NotificationChannel>(2);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [twoFactorMethod, setTwoFactorMethod] = useState<TwoFactorMethod>(1);
+  const [appointmentClosureMode, setAppointmentClosureMode] = useState<AppointmentClosureMode>(1);
   const [language, setLanguage] = useState('pt-BR');
   const [timeZone, setTimeZone] = useState('America/Sao_Paulo');
+  const [isClosureMenuOpen, setIsClosureMenuOpen] = useState(false);
+  const [isClosureHelpOpen, setIsClosureHelpOpen] = useState(false);
+  const closureMenuRef = useRef<HTMLDivElement | null>(null);
+  const closureHelpRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!token) return;
+
     const load = async () => {
       setIsLoading(true);
       try {
         const response = await fetchUserSettings(token);
+        const system = await fetchProfileSystemInfo(token);
         setSettings(response);
+        setSystemInfo(system);
         setEmail(response.email ?? '');
         setPhone(response.phone ?? '');
         setAllowEmailNotifications(response.allowEmailNotifications);
         setAllowPushNotifications(response.allowPushNotifications);
         setAllowWhatsAppNotifications(response.allowWhatsAppNotifications);
         setCriticalStockAlertsEnabled(response.criticalStockAlertsEnabled);
-        setPreferredNotificationChannel(response.preferredNotificationChannel);
-        setTwoFactorEnabled(response.twoFactorEnabled);
-        setTwoFactorMethod(response.twoFactorMethod);
+        setAppointmentClosureMode(response.appointmentClosureMode);
         setLanguage(response.language || 'pt-BR');
         setTimeZone(response.timeZone || 'America/Sao_Paulo');
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Erro ao carregar configuracoes.';
-        showToast(message, 'error');
+        showErrorToast(message);
       } finally {
         setIsLoading(false);
       }
     };
 
     void load();
-  }, [showToast, token]);
+  }, [showErrorToast, token]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (closureMenuRef.current && !closureMenuRef.current.contains(event.target as Node)) {
+        setIsClosureMenuOpen(false);
+      }
+      if (closureHelpRef.current && !closureHelpRef.current.contains(event.target as Node)) {
+        setIsClosureHelpOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, []);
 
   const handleSave = async () => {
     if (!token) return;
 
-    const preferredEnabled =
-      (preferredNotificationChannel === 1 && allowEmailNotifications) ||
-      (preferredNotificationChannel === 2 && allowPushNotifications) ||
-      (preferredNotificationChannel === 3 && allowWhatsAppNotifications);
+    const preferredNotificationChannel = getPreferredChannelFromFlags(
+      allowEmailNotifications,
+      allowPushNotifications,
+      allowWhatsAppNotifications,
+    );
 
-    if (!preferredEnabled) {
-      showToast('O canal preferencial precisa estar habilitado.', 'info');
-      return;
-    }
-
-    if (twoFactorEnabled && twoFactorMethod === 1) {
-      showToast('Selecione um metodo de dois fatores valido.', 'info');
+    if (!preferredNotificationChannel) {
+      showWarningToast('Ative pelo menos um canal de notificacao.');
       return;
     }
 
@@ -96,18 +118,19 @@ export const ConfigSection = () => {
         allowPushNotifications,
         allowWhatsAppNotifications,
         criticalStockAlertsEnabled,
+        appointmentClosureMode,
         preferredNotificationChannel,
-        twoFactorEnabled,
-        twoFactorMethod: twoFactorEnabled ? twoFactorMethod : 1,
-        language: language.trim() || 'pt-BR',
-        timeZone: timeZone.trim() || 'America/Sao_Paulo',
+        twoFactorEnabled: false,
+        twoFactorMethod: 1,
+        language,
+        timeZone,
       });
 
       setSettings(updated);
-      showToast('Configuracoes salvas com sucesso.', 'success');
+      showSuccessToast('Configuracoes salvas com sucesso.');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel salvar configuracoes.';
-      showToast(message, 'error');
+      showErrorToast(message);
     } finally {
       setIsSaving(false);
     }
@@ -115,7 +138,7 @@ export const ConfigSection = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-slate-100 rounded-[1.5rem] p-6">
+      <div className="rounded-[1.5rem] border border-slate-100 bg-white p-6">
         <p className="text-slate-500">Carregando configuracoes...</p>
       </div>
     );
@@ -123,8 +146,8 @@ export const ConfigSection = () => {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-100 rounded-[1.5rem] p-5 sm:p-6">
-        <div className="flex items-center gap-2 mb-1">
+      <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 sm:p-6">
+        <div className="mb-1 flex items-center gap-2">
           <ShieldCheck size={18} className="text-pink-600" />
           <p className="font-semibold text-slate-700">Configuracoes</p>
         </div>
@@ -133,10 +156,8 @@ export const ConfigSection = () => {
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Input label="E-mail" value={email} onChange={(event) => setEmail(String(event.target.value))} />
+          <Input label="E-mail" value={email} disabled className="cursor-not-allowed opacity-70" />
           <Input label="Telefone" value={phone} onChange={(event) => setPhone(String(event.target.value))} />
-          <Input label="Idioma" value={language} onChange={(event) => setLanguage(String(event.target.value))} />
-          <Input label="Time zone" value={timeZone} onChange={(event) => setTimeZone(String(event.target.value))} />
         </div>
       </div>
 
@@ -144,7 +165,7 @@ export const ConfigSection = () => {
         <button
           type="button"
           onClick={() => setAllowEmailNotifications((value) => !value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:bg-slate-50"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -163,7 +184,7 @@ export const ConfigSection = () => {
         <button
           type="button"
           onClick={() => setAllowPushNotifications((value) => !value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:bg-slate-50"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -182,7 +203,7 @@ export const ConfigSection = () => {
         <button
           type="button"
           onClick={() => setAllowWhatsAppNotifications((value) => !value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:bg-slate-50"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -201,7 +222,7 @@ export const ConfigSection = () => {
         <button
           type="button"
           onClick={() => setCriticalStockAlertsEnabled((value) => !value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:bg-slate-50"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -219,63 +240,92 @@ export const ConfigSection = () => {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">Canal preferencial</label>
-            <select
-              value={preferredNotificationChannel}
-              onChange={(event) => setPreferredNotificationChannel(Number(event.target.value) as NotificationChannel)}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 focus:border-pink-500 focus:bg-white focus:outline-none"
-            >
-              <option value={1}>{channelLabels[1]}</option>
-              <option value={2}>{channelLabels[2]}</option>
-              <option value={3}>{channelLabels[3]}</option>
-            </select>
+        <div className="relative" ref={closureMenuRef}>
+          <div className="mb-1 flex items-center gap-2">
+            <label className="block text-sm font-semibold text-slate-700">Fechamento de agendamento</label>
+            <div className="relative" ref={closureHelpRef}>
+              <button
+                type="button"
+                onClick={() => setIsClosureHelpOpen((value) => !value)}
+                className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Ajuda sobre fechamento de agendamento"
+              >
+                <CircleHelp size={15} />
+              </button>
+              {isClosureHelpOpen ? (
+                <div className="absolute left-1/2 top-[calc(100%+0.35rem)] z-50 w-[min(92vw,300px)] -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600 shadow-xl sm:left-0 sm:w-[290px] sm:translate-x-0">
+                  Define se o atendimento e concluido automaticamente no horario ou apenas quando voce confirmar manualmente.
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <button
             type="button"
-            onClick={() => setTwoFactorEnabled((value) => !value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:bg-slate-50 transition-colors"
+            onClick={() => setIsClosureMenuOpen((value) => !value)}
+            className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-700 transition-colors hover:bg-white focus:border-pink-500 focus:bg-white focus:outline-none"
+            aria-haspopup="listbox"
+            aria-expanded={isClosureMenuOpen}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="rounded-xl bg-violet-50 p-2 text-violet-600"><LockKeyhole size={18} /></span>
-                <div>
-                  <p className="font-semibold text-slate-800">Seguranca 2FA</p>
-                  <p className="text-xs text-slate-500">Autenticacao em dois fatores</p>
-                </div>
-              </div>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${twoFactorEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                {twoFactorEnabled ? 'Ativo' : 'Inativo'}
-              </span>
-            </div>
+            <span className="font-semibold">{appointmentClosureModeLabels[appointmentClosureMode]}</span>
+            <ChevronDown size={17} className={`transition-transform ${isClosureMenuOpen ? 'rotate-180' : ''}`} />
           </button>
+
+          {isClosureMenuOpen ? (
+            <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-40 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setAppointmentClosureMode(1);
+                  setIsClosureMenuOpen(false);
+                }}
+                className={`w-full rounded-xl px-3 py-2.5 text-left transition-colors ${appointmentClosureMode === 1 ? 'bg-pink-50 text-pink-700' : 'text-slate-700 hover:bg-slate-50'}`}
+              >
+                <p className="text-sm font-semibold">Automatico</p>
+                <p className="text-xs text-slate-500">Conclui automaticamente apos o horario.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAppointmentClosureMode(2);
+                  setIsClosureMenuOpen(false);
+                }}
+                className={`w-full rounded-xl px-3 py-2.5 text-left transition-colors ${appointmentClosureMode === 2 ? 'bg-pink-50 text-pink-700' : 'text-slate-700 hover:bg-slate-50'}`}
+              >
+                <p className="text-sm font-semibold">Manual</p>
+                <p className="text-xs text-slate-500">Exige encerramento manual do atendimento.</p>
+              </button>
+            </div>
+          ) : null}
         </div>
 
-        <div className="mt-3">
-          <label className="mb-1 block text-sm font-semibold text-slate-700">Metodo 2FA</label>
-          <select
-            value={twoFactorMethod}
-            onChange={(event) => setTwoFactorMethod(Number(event.target.value) as TwoFactorMethod)}
-            disabled={!twoFactorEnabled}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 focus:border-pink-500 focus:bg-white focus:outline-none disabled:opacity-50"
-          >
-            <option value={1}>{twoFactorLabels[1]}</option>
-            <option value={2}>{twoFactorLabels[2]}</option>
-            <option value={3}>{twoFactorLabels[3]}</option>
-            <option value={4}>{twoFactorLabels[4]}</option>
-          </select>
-        </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
-        <p className="text-xs text-slate-500">
-          Ultima atualizacao: {settings?.updatedAt ? new Date(settings.updatedAt).toLocaleString('pt-BR') : '-'}
-        </p>
-        <Button icon={Save} onClick={handleSave} isLoading={isSaving}>
-          Salvar configuracoes
+      <div className="flex justify-end">
+        <Button icon={Save} onClick={handleSave} isLoading={isSaving} className="w-full sm:w-auto">
+          SALVAR
         </Button>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Data da ultima atualizacao</p>
+            <p className="mt-0.5 text-sm font-bold text-slate-800">
+              {systemInfo?.lastUpdatedAt
+                ? new Date(`${systemInfo.lastUpdatedAt}T00:00:00`).toLocaleDateString('pt-BR')
+                : settings?.updatedAt
+                  ? new Date(settings.updatedAt).toLocaleDateString('pt-BR')
+                  : '-'}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Versao</p>
+            <p className="mt-0.5 text-sm font-bold text-slate-800">
+              {systemInfo?.currentVersion ? `v${systemInfo.currentVersion}` : '-'}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
