@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Appointment } from '../types/appointment';
+import { Appointment, ScheduleBlock } from '../types/appointment';
 import { fetchAvailableSlots } from '../services/appointmentService';
 import { generateTimeSlots, getAppointmentTimeRange, toMinutes } from '../pages/dashboard/agenda/dateUtils';
 
@@ -35,6 +35,7 @@ export const useAvailableSlots = (token: string | null) => {
   const buildSlots = useCallback(
     (
       dayAppointments: Appointment[],
+      dayBlocks: ScheduleBlock[],
       selectedProcedureDurationInMinutes?: number | null,
       hasProcedureSelected = false,
     ): SlotItem[] => {
@@ -49,15 +50,24 @@ export const useAvailableSlots = (token: string | null) => {
           end: toMinutes(item.end),
         }))
         .filter((item) => item.start >= 0 && item.end > item.start);
+      const blockedIntervals = dayBlocks
+        .map((item) => ({
+          start: toMinutes(item.startDateTime),
+          end: toMinutes(item.endDateTime),
+          isAllDay: item.isAllDay,
+        }))
+        .filter((item) => item.isAllDay || (item.start >= 0 && item.end > item.start))
+        .map((item) => (item.isAllDay ? { start: 0, end: DAY_END_MINUTES } : item));
 
       return BASE_SLOTS.map((time) => {
         const start = toMinutes(time);
         const end = start + duration;
         const exceedsDayRange = end > DAY_END_MINUTES;
         const overlaps = occupiedIntervals.some((interval) => start < interval.end && end > interval.start);
+        const blocked = blockedIntervals.some((interval) => start < interval.end && end > interval.start);
         const localAvailability = !exceedsDayRange && !overlaps;
         const apiAvailability = !hasProcedureSelected || normalizedFromApi.size === 0 || normalizedFromApi.has(time);
-        const isAvailable = localAvailability && apiAvailability;
+        const isAvailable = localAvailability && apiAvailability && !blocked;
 
         if (isAvailable) {
           return { time, isAvailable: true };
@@ -76,6 +86,13 @@ export const useAvailableSlots = (token: string | null) => {
             time,
             isAvailable: false,
             reason: 'Conflito com outro agendamento',
+          };
+        }
+        if (blocked) {
+          return {
+            time,
+            isAvailable: false,
+            reason: 'Horario bloqueado na agenda',
           };
         }
 

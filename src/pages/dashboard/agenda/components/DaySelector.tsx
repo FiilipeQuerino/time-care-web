@@ -5,6 +5,7 @@ interface DaySelectorProps {
   isSelected: boolean;
   isToday: boolean;
   appointmentsCount?: number;
+  isBlocked?: boolean;
   onSelect: (date: Date) => void;
 }
 
@@ -13,6 +14,7 @@ export const DaySelector = ({
   isSelected,
   isToday,
   appointmentsCount = 0,
+  isBlocked = false,
   onSelect,
 }: DaySelectorProps) => {
   const label = formatDayLabel(date);
@@ -35,6 +37,11 @@ export const DaySelector = ({
         {appointmentsCount > 0 ? (
           <span className="rounded-full border border-pink-200 bg-pink-100 px-1.5 py-0.5 text-[10px] font-bold text-pink-700">
             {appointmentsCount}
+          </span>
+        ) : null}
+        {isBlocked ? (
+          <span className="rounded-full border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+            Bloq
           </span>
         ) : null}
       </div>

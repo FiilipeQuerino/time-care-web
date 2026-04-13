@@ -6,6 +6,7 @@ interface WeeklyCalendarProps {
   weekStart: Date;
   selectedDate: Date;
   countsByDate: Record<string, number>;
+  blockedByDate?: Record<string, boolean>;
   onSelectDate: (date: Date) => void;
   onPrevWeek: () => void;
   onNextWeek: () => void;
@@ -18,6 +19,7 @@ export const WeeklyCalendar = ({
   weekStart,
   selectedDate,
   countsByDate,
+  blockedByDate = {},
   onSelectDate,
   onPrevWeek,
   onNextWeek,
@@ -84,6 +86,7 @@ export const WeeklyCalendar = ({
                 isSelected={key === selectedKey}
                 isToday={key === todayKey}
                 appointmentsCount={countsByDate[key] ?? 0}
+                isBlocked={blockedByDate[key] ?? false}
                 onSelect={onSelectDate}
               />
             </div>

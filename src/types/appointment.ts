@@ -27,6 +27,23 @@ export interface Appointment {
 export interface AppointmentCalendarDaySummary {
   date: string;
   totalAppointments: number;
+  isBlocked?: boolean;
+}
+
+export interface ScheduleBlock {
+  scheduleBlockId: number;
+  startDateTime: string;
+  endDateTime: string;
+  reason?: string;
+  isAllDay: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AppointmentDayAgenda {
+  date: string;
+  appointments: Appointment[];
+  blocks: ScheduleBlock[];
 }
 
 export interface CreateAppointmentPayload {
@@ -38,3 +55,12 @@ export interface CreateAppointmentPayload {
 }
 
 export interface UpdateAppointmentPayload extends CreateAppointmentPayload {}
+
+export interface CreateScheduleBlockPayload {
+  startDateTime: string;
+  endDateTime: string;
+  reason?: string;
+  isAllDay: boolean;
+}
+
+export interface UpdateScheduleBlockPayload extends CreateScheduleBlockPayload {}

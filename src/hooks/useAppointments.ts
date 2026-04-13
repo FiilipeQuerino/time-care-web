@@ -3,14 +3,20 @@ import {
   Appointment,
   AppointmentStatus,
   CreateAppointmentPayload,
+  CreateScheduleBlockPayload,
+  ScheduleBlock,
+  UpdateScheduleBlockPayload,
   UpdateAppointmentPayload,
 } from '../types/appointment';
 import {
   createAppointment,
+  createScheduleBlock,
+  deleteScheduleBlock,
   deleteAppointment,
   fetchAppointmentById,
   fetchAppointments,
   fetchAppointmentsByDay,
+  updateScheduleBlock,
   updateAppointment,
   updateAppointmentStatus,
 } from '../services/appointmentService';
@@ -19,6 +25,7 @@ import { getAppointmentDate } from '../pages/dashboard/agenda/dateUtils';
 export const useAppointments = (token: string | null) => {
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
   const [dayAppointments, setDayAppointments] = useState<Appointment[]>([]);
+  const [dayBlocks, setDayBlocks] = useState<ScheduleBlock[]>([]);
   const [isLoadingDay, setIsLoadingDay] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,7 +40,8 @@ export const useAppointments = (token: string | null) => {
     setIsLoadingDay(true);
     try {
       const data = await fetchAppointmentsByDay(token, date);
-      setDayAppointments(data);
+      setDayAppointments(data.appointments);
+      setDayBlocks(data.blocks);
     } finally {
       setIsLoadingDay(false);
     }
@@ -101,6 +109,45 @@ export const useAppointments = (token: string | null) => {
     }
   }, [token]);
 
+  const createBlock = useCallback(async (payload: CreateScheduleBlockPayload) => {
+    if (!token) throw new Error('Token de autenticacao indisponivel.');
+    setIsSubmitting(true);
+    try {
+      const created = await createScheduleBlock(token, payload);
+      setDayBlocks((current) => [...current, created].sort((a, b) => a.startDateTime.localeCompare(b.startDateTime)));
+      return created;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [token]);
+
+  const updateBlock = useCallback(async (scheduleBlockId: number, payload: UpdateScheduleBlockPayload) => {
+    if (!token) throw new Error('Token de autenticacao indisponivel.');
+    setIsSubmitting(true);
+    try {
+      const updated = await updateScheduleBlock(token, scheduleBlockId, payload);
+      setDayBlocks((current) =>
+        current
+          .map((item) => (item.scheduleBlockId === scheduleBlockId ? updated : item))
+          .sort((a, b) => a.startDateTime.localeCompare(b.startDateTime)),
+      );
+      return updated;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [token]);
+
+  const removeBlock = useCallback(async (scheduleBlockId: number) => {
+    if (!token) throw new Error('Token de autenticacao indisponivel.');
+    setIsSubmitting(true);
+    try {
+      await deleteScheduleBlock(token, scheduleBlockId);
+      setDayBlocks((current) => current.filter((item) => item.scheduleBlockId !== scheduleBlockId));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [token]);
+
   const changeStatus = useCallback(async (appointmentId: number, status: AppointmentStatus) => {
     if (!token) throw new Error('Token de autenticacao indisponivel.');
     setIsSubmitting(true);
@@ -127,6 +174,7 @@ export const useAppointments = (token: string | null) => {
   return {
     allAppointments,
     dayAppointments,
+    dayBlocks,
     appointmentsByDate,
     isLoadingDay,
     isSubmitting,
@@ -136,6 +184,9 @@ export const useAppointments = (token: string | null) => {
     create,
     update,
     remove,
+    createBlock,
+    updateBlock,
+    removeBlock,
     changeStatus,
   };
 };

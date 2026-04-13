@@ -1,8 +1,12 @@
 import {
   Appointment,
+  AppointmentDayAgenda,
   AppointmentCalendarDaySummary,
   AppointmentStatus,
   CreateAppointmentPayload,
+  CreateScheduleBlockPayload,
+  ScheduleBlock,
+  UpdateScheduleBlockPayload,
   UpdateAppointmentPayload,
 } from '../types/appointment';
 import { ApiResponse } from '../types/api';
@@ -52,6 +56,20 @@ const normalizeCalendarSummary = (raw: unknown): AppointmentCalendarDaySummary =
     totalAppointments: Number(
       getValue(source, 'totalAppointments', 'appointmentCount', 'appointmentsCount', 'count', 'total', 'TotalAppointments', 'AppointmentCount') ?? 0,
     ),
+    isBlocked: Boolean(getValue(source, 'isBlocked', 'IsBlocked') ?? false),
+  };
+};
+
+const normalizeScheduleBlock = (raw: unknown): ScheduleBlock => {
+  const source = (raw ?? {}) as Record<string, unknown>;
+  return {
+    scheduleBlockId: Number(getValue(source, 'scheduleBlockId', 'id', 'ScheduleBlockId') ?? 0),
+    startDateTime: String(getValue(source, 'startDateTime', 'StartDateTime') ?? ''),
+    endDateTime: String(getValue(source, 'endDateTime', 'EndDateTime') ?? ''),
+    reason: getValue<string>(source, 'reason', 'Reason'),
+    isAllDay: Boolean(getValue(source, 'isAllDay', 'IsAllDay') ?? false),
+    createdAt: getValue<string>(source, 'createdAt', 'CreatedAt'),
+    updatedAt: getValue<string>(source, 'updatedAt', 'UpdatedAt'),
   };
 };
 
@@ -167,7 +185,7 @@ export async function deleteAppointment(token: string, appointmentId: number): P
   });
 }
 
-export async function fetchAppointmentsByDay(token: string, date: string): Promise<Appointment[]> {
+export async function fetchAppointmentsByDay(token: string, date: string): Promise<AppointmentDayAgenda> {
   const response = await apiRequest<RawApiResponse<unknown> | unknown>(`/api/Appointment/day?date=${date}`, {
     method: 'GET',
     token,
@@ -175,7 +193,13 @@ export async function fetchAppointmentsByDay(token: string, date: string): Promi
   const unwrapped = unwrap<unknown>(response, 'Nao foi possivel carregar a agenda do dia.');
   const source = (unwrapped.data ?? {}) as Record<string, unknown>;
   const appointments = getValue<unknown[]>(source, 'appointments', 'Appointments') ?? [];
-  return Array.isArray(appointments) ? appointments.map(normalizeAppointment) : [];
+  const blocks = getValue<unknown[]>(source, 'blocks', 'Blocks') ?? [];
+
+  return {
+    date: String(getValue(source, 'date', 'Date') ?? date),
+    appointments: Array.isArray(appointments) ? appointments.map(normalizeAppointment) : [],
+    blocks: Array.isArray(blocks) ? blocks.map(normalizeScheduleBlock) : [],
+  };
 }
 
 export async function fetchCalendarRangeSummary(
@@ -238,4 +262,38 @@ export async function updateAppointmentStatus(
 
   const unwrapped = unwrap<unknown>(response, 'Nao foi possivel atualizar o status do agendamento.');
   return normalizeAppointment(unwrapped.data);
+}
+
+export async function createScheduleBlock(
+  token: string,
+  payload: CreateScheduleBlockPayload,
+): Promise<ScheduleBlock> {
+  const response = await apiRequest<RawApiResponse<unknown> | unknown>('/api/ScheduleBlock', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(payload),
+  });
+  const unwrapped = unwrap<unknown>(response, 'Nao foi possivel criar o bloqueio.');
+  return normalizeScheduleBlock(unwrapped.data);
+}
+
+export async function updateScheduleBlock(
+  token: string,
+  scheduleBlockId: number,
+  payload: UpdateScheduleBlockPayload,
+): Promise<ScheduleBlock> {
+  const response = await apiRequest<RawApiResponse<unknown> | unknown>(`/api/ScheduleBlock/${scheduleBlockId}`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(payload),
+  });
+  const unwrapped = unwrap<unknown>(response, 'Nao foi possivel atualizar o bloqueio.');
+  return normalizeScheduleBlock(unwrapped.data);
+}
+
+export async function deleteScheduleBlock(token: string, scheduleBlockId: number): Promise<void> {
+  await apiRequest<RawApiResponse<unknown> | unknown>(`/api/ScheduleBlock/${scheduleBlockId}`, {
+    method: 'DELETE',
+    token,
+  });
 }

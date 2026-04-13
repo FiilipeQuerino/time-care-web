@@ -1,17 +1,20 @@
 import { Clock3 } from 'lucide-react';
 import { useMemo } from 'react';
 import { SlotItem } from '../../../../hooks/useAvailableSlots';
-import { Appointment } from '../../../../types/appointment';
-import { getAppointmentTimeRange, toMinutes } from '../dateUtils';
+import { Appointment, ScheduleBlock } from '../../../../types/appointment';
+import { formatTime, getAppointmentTimeRange, toMinutes } from '../dateUtils';
 import { getAppointmentStatusVisual } from '../statusVisual';
+import { getScheduleBlockVisual } from '../scheduleBlockVisual';
 
 interface AvailableSlotsListProps {
   slots: SlotItem[];
   selectedSlot: string;
   isLoading: boolean;
   appointments: Appointment[];
+  blocks: ScheduleBlock[];
   onSelectSlot: (time: string) => void;
   onOpenAppointment?: (appointment: Appointment) => void;
+  onOpenBlock?: (block: ScheduleBlock) => void;
 }
 
 export const AvailableSlotsList = ({
@@ -19,8 +22,10 @@ export const AvailableSlotsList = ({
   selectedSlot,
   isLoading,
   appointments,
+  blocks,
   onSelectSlot,
   onOpenAppointment,
+  onOpenBlock,
 }: AvailableSlotsListProps) => {
   const TIMELINE_START_MINUTES = 7 * 60;
   const TIMELINE_END_MINUTES = 22 * 60;
@@ -56,6 +61,25 @@ export const AvailableSlotsList = ({
       .filter((item): item is { appointment: Appointment; top: number; height: number; intervalLabel: string } => Boolean(item))
       .sort((a, b) => a.top - b.top);
   }, [appointments]);
+  const visibleBlocks = useMemo(() => {
+    return blocks
+      .map((block) => {
+        const startMinutes = block.isAllDay ? TIMELINE_START_MINUTES : toMinutes(block.startDateTime);
+        const endMinutes = block.isAllDay ? TIMELINE_END_MINUTES : toMinutes(block.endDateTime);
+        const clampedStart = Math.max(startMinutes, TIMELINE_START_MINUTES);
+        const clampedEnd = Math.min(endMinutes, TIMELINE_END_MINUTES);
+        if (Number.isNaN(clampedStart) || Number.isNaN(clampedEnd) || clampedEnd <= clampedStart) return null;
+
+        return {
+          block,
+          top: (clampedStart - TIMELINE_START_MINUTES) * PIXELS_PER_MINUTE,
+          height: Math.max((clampedEnd - clampedStart) * PIXELS_PER_MINUTE, 36),
+          intervalLabel: block.isAllDay ? 'Dia inteiro' : `${formatTime(block.startDateTime)}-${formatTime(block.endDateTime)}`,
+        };
+      })
+      .filter((item): item is { block: ScheduleBlock; top: number; height: number; intervalLabel: string } => Boolean(item))
+      .sort((a, b) => a.top - b.top);
+  }, [blocks]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -139,6 +163,31 @@ export const AvailableSlotsList = ({
                 height: `${timelineHeight}px`,
               }}
             >
+              {visibleBlocks.map(({ block, top, height, intervalLabel }) => {
+                const blockVisual = getScheduleBlockVisual();
+                return (
+                  <button
+                    key={`block-${block.scheduleBlockId}`}
+                    type="button"
+                    onClick={() => {
+                      if (onOpenBlock) onOpenBlock(block);
+                    }}
+                    className={`pointer-events-auto absolute w-full rounded-xl border-l-4 px-3 py-2 text-left transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-slate-300 ${blockVisual.cardClassName}`}
+                    style={{
+                      top: `${top}px`,
+                      minHeight: `${height}px`,
+                    }}
+                    aria-label={`Bloqueio ${intervalLabel}`}
+                  >
+                    <p className="text-[11px] font-semibold tracking-wide text-slate-700">{intervalLabel}</p>
+                    <p className="mt-0.5 truncate text-sm font-bold text-slate-800">Horario bloqueado</p>
+                    <p className="truncate text-xs font-medium text-slate-600">{block.reason?.trim() || 'Sem motivo informado'}</p>
+                    <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${blockVisual.badgeClassName}`}>
+                      {block.isAllDay ? 'Bloqueio dia inteiro' : blockVisual.label}
+                    </p>
+                  </button>
+                );
+              })}
               {visibleAppointments.map(({ appointment, top, height, intervalLabel }) => (
                 (() => {
                   const statusVisual = getAppointmentStatusVisual(appointment.status, appointment.statusLabel);
